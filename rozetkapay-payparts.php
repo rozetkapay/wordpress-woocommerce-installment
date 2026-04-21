@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce RozetkaPay Payparts
  * Plugin URI: https://rozetkapay.com/
  * Description: Інтеграція оплати частинами RozetkaPay для WooCommerce
- * Version: 2.0.3
+ * Version: 2.0.9
  * Author: RozetkaPay
  * Author URI: https://rozetkapay.com/
  * Text Domain: rp-payparts
@@ -41,7 +41,7 @@ if ( defined('RP_PAYPARTS_BOOTSTRAPPED') ) {
 define('RP_PAYPARTS_BOOTSTRAPPED', true);
 
 // Define plugin constants
-define('RP_PAYPARTS_VERSION','2.0.3-fixed');
+define('RP_PAYPARTS_VERSION','2.0.9');
 define( 'RP_PAYPARTS_PLUGIN_FILE', __FILE__ );
 define( 'RP_PAYPARTS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'RP_PAYPARTS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
@@ -516,42 +516,69 @@ add_action( 'rp_rozetkapay_status_check', function () {
                 rp_standard_process_refund( $order, $refund_amount, $debug );
                 
             } else {
-                // Обробляємо основний статус платежу лише якщо немає повернення
-                $status = '';
+                // Визначаємо статус з реальної структури API RozetkaPay Standard:
+                // API НЕ повертає кореневе поле 'status' — використовує булеві поля
+                // purchased/confirmed/canceled/refunded + details.status_code
+                $status        = '';
+                $status_code   = '';
+                $payment_id    = isset( $status_data['id'] ) ? $status_data['id'] : '';
+
                 if ( is_array( $status_data ) ) {
-                    $status = isset( $status_data['status'] ) ? strtolower( $status_data['status'] ) : '';
+                    // Пріоритет 1: purchase_details.status_code
+                    if ( ! empty( $status_data['purchase_details']['status_code'] ) ) {
+                        $status_code = strtolower( $status_data['purchase_details']['status_code'] );
+                        $status      = strtolower( $status_data['purchase_details']['status'] ?? $status_code );
+                    }
+                    // Пріоритет 2: confirmation_details
+                    elseif ( ! empty( $status_data['confirmation_details']['status_code'] ) ) {
+                        $status_code = strtolower( $status_data['confirmation_details']['status_code'] );
+                        $status      = strtolower( $status_data['confirmation_details']['status'] ?? $status_code );
+                    }
+                    // Пріоритет 3: булеві поля purchased / canceled
+                    elseif ( isset( $status_data['purchased'] ) ) {
+                        if ( intval( $status_data['purchased'] ) === 1 ) {
+                            $status = 'success';
+                        } elseif ( isset( $status_data['canceled'] ) && intval( $status_data['canceled'] ) === 1 ) {
+                            $status = 'canceled';
+                        }
+                    }
+                    // Пріоритет 4: кореневий status (якщо раптом є)
+                    elseif ( ! empty( $status_data['status'] ) ) {
+                        $status = strtolower( $status_data['status'] );
+                    }
                 }
 
                 if ( $debug ) {
-                    error_log( 'RozetkaPay CRON: статус платежу = ' . $status );
+                    error_log( sprintf(
+                        'RozetkaPay CRON: статус замовлення #%s = "%s" (code="%s", purchased=%s, canceled=%s)',
+                        $order->get_id(),
+                        $status,
+                        $status_code,
+                        isset( $status_data['purchased'] ) ? intval( $status_data['purchased'] ) : 'n/a',
+                        isset( $status_data['canceled'] )  ? intval( $status_data['canceled'] )  : 'n/a'
+                    ) );
                 }
 
-                switch ( $status ) {
-                    case 'success':
-                    case 'paid':
-                    case 'completed':
-                        if ( $order->has_status( array( 'pending', 'on-hold', 'processing' ) ) ) {
-                            $order->payment_complete();
-                            $order->add_order_note( 'RozetkaPay: платіж підтверджено через cron (payment info).' );
-                            if ( $debug ) error_log( 'RozetkaPay CRON: замовлення #' . $order->get_id() . ' переведено в paid.' );
-                        }
-                        break;
+                // Успішні статуси
+                $success_codes = array( 'success', 'paid', 'completed', 'transaction_successful', 'payment_successful' );
+                // Невдалі статуси
+                $failed_codes  = array( 'rejected', 'failed', 'canceled', 'cancelled', 'transaction_rejected', 'declined' );
 
-                    case 'rejected':
-                    case 'failed':
-                    case 'canceled':
-                    case 'cancelled':
-                        if ( ! $order->has_status( 'failed' ) ) {
-                            $order->update_status( 'failed', 'RozetkaPay: платіж відхилено через cron (payment info).' );
-                            if ( $debug ) error_log( 'RozetkaPay CRON: замовлення #' . $order->get_id() . ' позначено як failed.' );
-                        }
-                        break;
-
-                    case 'processing':
-                    case 'pending':
-                    default:
-                        // залишаємо як є
-                        break;
+                if ( in_array( $status, $success_codes, true ) || in_array( $status_code, $success_codes, true ) ) {
+                    if ( $order->has_status( array( 'pending', 'on-hold', 'processing' ) ) ) {
+                        $order->payment_complete( $payment_id );
+                        $note = 'RozetkaPay: платіж підтверджено через cron.';
+                        if ( $status_code ) $note .= ' Код: ' . $status_code;
+                        $order->add_order_note( $note );
+                        if ( $debug ) error_log( 'RozetkaPay CRON: замовлення #' . $order->get_id() . ' переведено в paid.' );
+                    }
+                } elseif ( in_array( $status, $failed_codes, true ) || in_array( $status_code, $failed_codes, true ) ) {
+                    if ( ! $order->has_status( array( 'failed', 'cancelled' ) ) ) {
+                        $order->update_status( 'failed', 'RozetkaPay: платіж відхилено через cron. Код: ' . ( $status_code ?: $status ) );
+                        if ( $debug ) error_log( 'RozetkaPay CRON: замовлення #' . $order->get_id() . ' позначено як failed.' );
+                    }
+                } else {
+                    if ( $debug ) error_log( 'RozetkaPay CRON: замовлення #' . $order->get_id() . ' — статус невизначений, залишаємо як є.' );
                 }
             }
 

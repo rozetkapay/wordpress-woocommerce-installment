@@ -43,8 +43,24 @@ class RP_Payparts_Assets_Manager {
             'rozetkapay-payparts-mobile', 
             RP_PAYPARTS_PLUGIN_URL . 'assets/css/mobile.css', 
             array( 'rozetkapay-payparts-frontend' ), 
-            $this->get_asset_version( 'assets/css/mobile.css' ),
-            'screen and (max-width: 768px)'
+            $this->get_asset_version( 'assets/css/mobile.css' )
+        );
+
+        // Slider CSS — підключаємо ЗАВЖДИ на checkout/cart через Assets Manager.
+        // Виклик wp_enqueue_style() всередині render_slider_interface() відбувається
+        // після wp_head() і браузер ігнорує ці стилі — саме тому картки не мали CSS.
+        wp_enqueue_style(
+            'rozetkapay-payparts-slider',
+            RP_PAYPARTS_PLUGIN_URL . 'assets/css/slider.css',
+            array( 'rozetkapay-payparts-frontend' ),
+            $this->get_asset_version( 'assets/css/slider.css' )
+        );
+
+        wp_enqueue_style(
+            'rozetkapay-payparts-widget',
+            RP_PAYPARTS_PLUGIN_URL . 'assets/css/widget.css',
+            array( 'rozetkapay-payparts-frontend' ),
+            $this->get_asset_version( 'assets/css/widget.css' )
         );
 
         // Підключаємо JavaScript для checkout

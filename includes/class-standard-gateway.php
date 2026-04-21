@@ -284,25 +284,22 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
             }
             
             $payment_url = $payment_result['payment_url'];
-            $payment_id = $payment_result['id'] ?? '';
-            // Зберігаємо корисні мета-дані для діагностики
-            $order->update_meta_data( '_rozetkapay_payment_id', $payment_id );
-            $order->update_meta_data( '_rozetkapay_payment_url', $payment_url );
-            // Гарантуємо, що external_id збережено
-            $ext = $order->get_meta( '_rozetkapay_external_id', true );
-            if ( empty($ext) ) {
-                $ext = function_exists('rp_build_reference') ? rp_build_reference( $order, $this->order_ref_prefix ) : (string) $order->get_order_number();
-                $order->update_meta_data( '_rozetkapay_external_id', $ext );
+            $payment_id  = $payment_result['id'] ?? '';
+
+            // Отримуємо/будуємо reference і зберігаємо в ОБИДВА ключі
+            // щоб find_order_by_callback_data знаходив замовлення незалежно від ключа
+            $ext_id = $order->get_meta( '_rp_reference', true );
+            if ( empty( $ext_id ) ) {
+                $ext_id = function_exists( 'rp_build_reference' )
+                    ? rp_build_reference( $order, $this->order_ref_prefix )
+                    : (string) $order->get_order_number();
             }
-            
-            error_log('RozetkaPay: Payment created successfully');
-            error_log('RozetkaPay: Payment ID: ' . $payment_id);
-            error_log('RozetkaPay: Payment URL: ' . $payment_url);
-            
-            // Зберігаємо інформацію про платіж у мета-поля
-            $order->update_meta_data( '_rozetkapay_payment_id', $payment_id );
-            $order->update_meta_data( '_rozetkapay_external_id', $payment_result['external_id'] ?? '' );
+            $order->update_meta_data( '_rp_reference',           $ext_id );
+            $order->update_meta_data( '_rozetkapay_external_id', $ext_id );
+            $order->update_meta_data( '_rozetkapay_payment_id',  $payment_id );
             $order->update_meta_data( '_rozetkapay_payment_url', $payment_url );
+
+            error_log( 'RozetkaPay Standard: payment created. ID=' . $payment_id . ' ext=' . $ext_id );
             
             $order->update_status( 'pending', __( 'Очікується оплата через RozetkaPay.', 'rp-payparts' ) );
             $order->save();
@@ -418,35 +415,61 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
     /**
      * НОВИЙ метод: пошук замовлення за даними callback
      */
-    private function find_order_by_callback_data($data) {
-        // Прагнемо знайти замовлення різними способами
-        
-        // 1. За external_id
-        if (!empty($data['external_id'])) {
-            $external_id = $data['external_id'];
-            // Витягуємо ID замовлення з external_id (формат: order-ID-timestamp)
-            if (preg_match('/^order-(\d+)-\d+$/', $external_id, $matches)) {
-                $order_id = intval($matches[1]);
-                $order = wc_get_order($order_id);
-                if ($order) {
+    private function find_order_by_callback_data( $data ) {
+
+        // 1. За _rozetkapay_payment_id (найнадійніший — зберігається при створенні)
+        if ( ! empty( $data['id'] ) ) {
+            $orders = wc_get_orders( array(
+                'meta_key'   => '_rozetkapay_payment_id',
+                'meta_value' => $data['id'],
+                'limit'      => 1,
+                'return'     => 'objects',
+            ) );
+            if ( ! empty( $orders ) ) {
+                error_log( 'RozetkaPay Callback: order found by _rozetkapay_payment_id=' . $data['id'] );
+                return $orders[0];
+            }
+        }
+
+        // 2. За external_id через мета-поля
+        if ( ! empty( $data['external_id'] ) ) {
+            $ext_id = $data['external_id'];
+
+            // 2а. _rp_reference (формат: roz1-42)
+            $orders = wc_get_orders( array(
+                'meta_key'   => '_rp_reference',
+                'meta_value' => $ext_id,
+                'limit'      => 1,
+                'return'     => 'objects',
+            ) );
+            if ( ! empty( $orders ) ) {
+                error_log( 'RozetkaPay Callback: order found by _rp_reference=' . $ext_id );
+                return $orders[0];
+            }
+
+            // 2б. _rozetkapay_external_id
+            $orders = wc_get_orders( array(
+                'meta_key'   => '_rozetkapay_external_id',
+                'meta_value' => $ext_id,
+                'limit'      => 1,
+                'return'     => 'objects',
+            ) );
+            if ( ! empty( $orders ) ) {
+                error_log( 'RozetkaPay Callback: order found by _rozetkapay_external_id=' . $ext_id );
+                return $orders[0];
+            }
+
+            // 2в. Числовий fallback
+            if ( preg_match( '/(\d+)/', $ext_id, $m ) ) {
+                $order = wc_get_order( intval( $m[1] ) );
+                if ( $order && $order->get_payment_method() === $this->id ) {
+                    error_log( 'RozetkaPay Callback: order found by numeric ID=' . $m[1] );
                     return $order;
                 }
             }
         }
-        
-        // 2. За payment_id у мета-полях
-        if (!empty($data['id'])) {
-            $orders = wc_get_orders(array(
-                'meta_key' => '_rozetkapay_payment_id',
-                'meta_value' => $data['id'],
-                'limit' => 1
-            ));
-            
-            if (!empty($orders)) {
-                return $orders[0];
-            }
-        }
-        
+
+        error_log( 'RozetkaPay Callback: order NOT found. id=' . ( $data['id'] ?? '' ) . ' external_id=' . ( $data['external_id'] ?? '' ) );
         return null;
     }
 
@@ -617,21 +640,14 @@ private function update_order_status_from_callback($order, $data) {
                 $payment_data['customer'] = $customer_data;
             }
             
-            // ВИМКНЕНО: передача товарів для стабільності
-            /*
-            if ( $this->debug_mode ) {
-                $products_data = $this->prepare_products_data( $order );
-                if ( $products_data ) {
-                    $payment_data['products'] = $products_data;
-                    error_log('RozetkaPay: Products included in debug mode');
-                } else {
-                    error_log('RozetkaPay: No products data prepared');
+            // Передаємо товари згідно OpenAPI схеми (без поля currency на рівні product)
+            $products_data = $this->prepare_products_data( $order );
+            if ( ! empty( $products_data ) ) {
+                $payment_data['products'] = $products_data;
+                if ( $this->debug_mode ) {
+                    error_log( 'RozetkaPay Standard: products count=' . count( $products_data ) );
                 }
-            } else {
-                error_log('RozetkaPay: Products excluded - debug mode disabled');
             }
-            */
-            error_log('RozetkaPay: Products transmission disabled for stability');
             
             return $payment_data;
             
@@ -652,6 +668,101 @@ private function update_order_status_from_callback($order, $data) {
         }
         
         return $description;
+    }
+
+    /**
+     * Підготовка масиву товарів згідно OpenAPI схеми Product.
+     * Поля: id, name, quantity (string), net_amount (float), vat_amount, category, url, description
+     * НЕ передаємо: currency (не в схемі Product)
+     */
+    private function prepare_products_data( $order ) {
+        $products = array();
+
+        foreach ( $order->get_items() as $item_id => $item ) {
+            $qty       = intval( $item->get_quantity() );
+            $net_total = floatval( $item->get_total() );
+            $tax_total = floatval( $item->get_total_tax() );
+            $unit_net  = $qty > 0 ? round( $net_total / $qty, 2 ) : round( $net_total, 2 );
+            $unit_vat  = $qty > 0 ? round( $tax_total / $qty, 2 ) : round( $tax_total, 2 );
+
+            $product_obj = $item->get_product();
+            $product_id  = $product_obj ? (string) $product_obj->get_id() : (string) $item_id;
+
+            $entry = array(
+                'id'         => $product_id,
+                'name'       => $item->get_name(),
+                'quantity'   => (string) $qty,
+                'net_amount' => $unit_net,
+            );
+
+            if ( $unit_vat > 0 ) {
+                $entry['vat_amount'] = $unit_vat;
+            }
+
+            if ( $product_obj ) {
+                // category
+                $terms = get_the_terms( $product_obj->get_id(), 'product_cat' );
+                if ( $terms && ! is_wp_error( $terms ) ) {
+                    $entry['category'] = reset( $terms )->name;
+                }
+                // url
+                $product_url = get_permalink( $product_obj->get_id() );
+                if ( $product_url ) {
+                    $entry['url'] = $product_url;
+                }
+                // description (короткий опис, до 255 символів)
+                $short_desc = wp_strip_all_tags( $product_obj->get_short_description() );
+                if ( ! empty( $short_desc ) ) {
+                    $entry['description'] = mb_substr( $short_desc, 0, 255 );
+                }
+                // image — головне фото товару
+                $image_id = $product_obj->get_image_id();
+                if ( $image_id ) {
+                    $image_src = wp_get_attachment_image_src( $image_id, 'woocommerce_thumbnail' );
+                    if ( $image_src ) {
+                        $entry['image'] = $image_src[0];
+                    }
+                }
+            }
+
+            $products[] = $entry;
+        }
+
+        // Доставка як окремий рядок
+        $shipping_net = floatval( $order->get_shipping_total() );
+        $shipping_tax = floatval( $order->get_shipping_tax() );
+        if ( $shipping_net + $shipping_tax > 0 ) {
+            $entry = array(
+                'id'         => 'shipping',
+                'name'       => __( 'Доставка', 'rp-payparts' ),
+                'quantity'   => '1',
+                'net_amount' => round( $shipping_net, 2 ),
+            );
+            if ( $shipping_tax > 0 ) {
+                $entry['vat_amount'] = round( $shipping_tax, 2 );
+            }
+            $products[] = $entry;
+        }
+
+        // Додаткові збори
+        foreach ( $order->get_fees() as $fee ) {
+            $fee_net = floatval( $fee->get_total() );
+            $fee_tax = floatval( $fee->get_total_tax() );
+            if ( abs( $fee_net ) + abs( $fee_tax ) > 0 ) {
+                $entry = array(
+                    'id'         => 'fee_' . sanitize_key( $fee->get_name() ),
+                    'name'       => $fee->get_name(),
+                    'quantity'   => '1',
+                    'net_amount' => round( $fee_net, 2 ),
+                );
+                if ( $fee_tax > 0 ) {
+                    $entry['vat_amount'] = round( $fee_tax, 2 );
+                }
+                $products[] = $entry;
+            }
+        }
+
+        return $products;
     }
 
     private function prepare_customer_data( $order ) {

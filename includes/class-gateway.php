@@ -33,6 +33,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
     public $display_style;
     public $debug_mode;
     public $auto_redirect;
+    public $auto_confirm;
 
     public function __construct() {
         $this->id                 = 'rp_payparts';
@@ -1183,20 +1184,22 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
                                     <div class="rp-bank-logo">
                                         <img src="<?php echo esc_url( RP_PAYPARTS_PLUGIN_URL . 'assets/images/' . $bank_slug . '-logo.png' ); ?>" 
                                              alt="<?php echo esc_attr( $bank_info['name'] ); ?>" 
-                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                                        <div class="rp-bank-fallback" style="display: none;">
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="rp-bank-fallback" style="display:none;">
                                             <?php echo esc_html( mb_substr( $bank_info['name'], 0, 2 ) ); ?>
                                         </div>
                                     </div>
-                                    <div class="rp-bank-name"><?php echo esc_html( $bank_info['name'] ); ?></div>
-                                    <div class="rp-bank-terms">
-                                        <?php 
-                                        $bank_term_labels = array();
-                                        foreach ( $bank_info['terms'] as $term => $key ) {
-                                            $bank_term_labels[] = $term . ' ' . $this->get_month_declension( $term );
-                                        }
-                                        echo esc_html( implode( ', ', $bank_term_labels ) );
-                                        ?>
+                                    <div class="rp-bank-info">
+                                        <div class="rp-bank-name"><?php echo esc_html( $bank_info['name'] ); ?></div>
+                                        <div class="rp-bank-terms">
+                                            <?php 
+                                            $bank_term_labels = array();
+                                            foreach ( $bank_info['terms'] as $term => $key ) {
+                                                $bank_term_labels[] = $term . ' ' . $this->get_month_declension( $term );
+                                            }
+                                            echo esc_html( implode( ', ', $bank_term_labels ) );
+                                            ?>
+                                        </div>
                                     </div>
                                 </div>
                             </label>
@@ -1569,77 +1572,108 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
     private function prepare_payment_data( $order, $bank_id, $term ) {
         $products = array();
         $total_amount = 0;
-        
-        foreach ( $order->get_items() as $item ) {
-            $line_total = $item->get_subtotal();
+
+        foreach ( $order->get_items() as $item_id => $item ) {
+            $qty       = intval( $item->get_quantity() );
+            $line_total = floatval( $item->get_total() ) + floatval( $item->get_total_tax() );
+            $unit_price = $qty > 0 ? round( $line_total / $qty, 2 ) : round( $line_total, 2 );
             $total_amount += $line_total;
-            
-            $products[] = array(
-                'name' => $item->get_name(),
-                'quantity' => intval( $item->get_quantity() ),
-                'price' => floatval( $line_total ),
+
+            $product_obj = $item->get_product();
+            $product_id  = $product_obj ? (string) ( $product_obj->get_id() ) : (string) $item_id;
+
+            // Категорія першого товару
+            $category_name = '';
+            if ( $product_obj ) {
+                $terms = get_the_terms( $product_obj->get_id(), 'product_cat' );
+                if ( $terms && ! is_wp_error( $terms ) ) {
+                    $category_name = reset( $terms )->name;
+                }
+            }
+
+            $product_entry = array(
+                'external_id'   => $product_id,          // Id товару на стороні мерчанта
+                'name'          => $item->get_name(),
+                'quantity'      => $qty,
+                'price'         => $unit_price,           // ціна за одиницю (з ПДВ)
             );
+
+            if ( ! empty( $category_name ) ) {
+                $product_entry['category_name'] = $category_name;
+            }
+
+            $products[] = $product_entry;
         }
-        
-        $shipping_total = $order->get_shipping_total();
+
+        $shipping_total = floatval( $order->get_shipping_total() ) + floatval( $order->get_shipping_tax() );
         if ( $shipping_total > 0 ) {
             $total_amount += $shipping_total;
             $products[] = array(
-                'name' => __( 'Доставка', 'rp-payparts' ),
+                'name'     => __( 'Доставка', 'rp-payparts' ),
                 'quantity' => 1,
-                'price' => floatval( $shipping_total ),
+                'price'    => round( $shipping_total, 2 ),
             );
         }
-        
-        $tax_total = $order->get_total_tax();
-        if ( $tax_total > 0 ) {
-            $total_amount += $tax_total;
-            $products[] = array(
-                'name' => __( 'Податки', 'rp-payparts' ),
-                'quantity' => 1,
-                'price' => floatval( $tax_total ),
-            );
+
+        // Окремі рядки ПДВ (якщо є, крім тих що вже в ціні товару)
+        $fee_tax_total = 0;
+        foreach ( $order->get_fees() as $fee ) {
+            $fee_total = floatval( $fee->get_total() ) + floatval( $fee->get_total_tax() );
+            if ( $fee_total != 0 ) {
+                $total_amount += $fee_total;
+                $fee_tax_total += $fee_total;
+                $products[] = array(
+                    'name'     => $fee->get_name(),
+                    'quantity' => 1,
+                    'price'    => round( $fee_total, 2 ),
+                );
+            }
         }
         
-        $order_total = $order->get_total();
+        // Якщо через заокруглення є розбіжність — вирівнюємо суму замовлення
+        $order_total = floatval( $order->get_total() );
         if ( abs( $total_amount - $order_total ) > 0.01 ) {
+            if ( $this->debug_mode ) {
+                error_log( sprintf(
+                    'RozetkaPay PayParts: products sum %.2f differs from order total %.2f, adjusting.',
+                    $total_amount, $order_total
+                ) );
+            }
             $total_amount = $order_total;
         }
-        
+
         if ( $this->debug_mode ) {
-            $order->add_order_note( sprintf( 
-                'RozetkaPay Debug: Сума для API – %.2f UAH (товари: %.2f, доставка: %.2f, податки: %.2f)', 
-                $total_amount, 
-                $order->get_subtotal(),
-                $shipping_total,
-                $tax_total
+            $order->add_order_note( sprintf(
+                'RozetkaPay Debug: Сума для API – %.2f UAH, товарів у payload: %d',
+                $total_amount,
+                count( $products )
             ) );
         }
-        
+
         return array(
-            'bank_name' => $bank_id,
-            'mode' => 'direct',
+            'bank_name'                 => $bank_id,
+            'mode'                      => 'direct',
             'auto_confirm_after_success' => ( $this->auto_confirm === 'yes' ),
-            'external_id' => function_exists('rp_build_reference') ? rp_build_reference( $order, $this->order_ref_prefix ) : (string) $order->get_id(),
-            'currency' => $order->get_currency(),
-            'parts_count' => intval( $term ),
-            'amount' => floatval( $total_amount ),
-            'description' => sprintf( 
-                __( 'Оплата замовлення №%s на %s частин', 'rp-payparts' ), 
+            'external_id'               => function_exists( 'rp_build_reference' )
+                ? rp_build_reference( $order, $this->order_ref_prefix )
+                : (string) $order->get_id(),
+            'currency'                  => $order->get_currency(),
+            'parts_count'               => intval( $term ),
+            'amount'                    => $order_total,
+            'description'               => sprintf(
+                __( 'Оплата замовлення №%s на %s частин', 'rp-payparts' ),
                 $order->get_order_number(),
                 $term
             ),
-            'customer' => array(
+            'customer'                  => array(
                 'first_name' => $order->get_billing_first_name(),
-                'last_name' => $order->get_billing_last_name(),
-                'email' => $order->get_billing_email(),
-                'phone' => $this->format_phone( $order->get_billing_phone() ),
+                'last_name'  => $order->get_billing_last_name(),
+                'email'      => $order->get_billing_email(),
+                'phone'      => $this->format_phone( $order->get_billing_phone() ),
             ),
-            'products' => $products,
-            'callback_url' => home_url( '/wc-api/' . $this->id ),
-            'success_url' => $this->get_return_url( $order ),
-            'failure_url' => wc_get_checkout_url(),
-            'result_url' => home_url( '/' ),
+            'products'                  => $products,
+            'callback_url'              => home_url( '/wc-api/' . $this->id ),
+            'result_url'                => $this->get_return_url( $order ),
         );
     }
     
