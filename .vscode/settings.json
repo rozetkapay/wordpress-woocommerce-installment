@@ -1,0 +1,32 @@
+{
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "editor.formatOnSaveMode": "modifications",
+  "files.trimTrailingWhitespace": false,
+  "intelephense.format.enable": true,
+  "[php]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+  },
+  "intelephense.files.maxSize": 10000000,
+  "intelephense.files.exclude": [
+    "**/.git/**",
+    "**/.svn/**",
+    "**/.hg/**",
+    "**/CVS/**",
+    "**/.DS_Store/**",
+    "**/node_modules/**",
+    "**/bower_components/**",
+    "**/vendor/**/{Tests,tests}/**",
+    "**/.history/**",
+    "**/vendor/**/vendor/**",
+    "**/vendor/php-stubs/**/finder.php",
+    "**/vendor/php-stubs/**/finder-packages.php",
+    "**/vendor/php-stubs/**/functionMap.php",
+    "**/vendor/php-stubs/**/src/**",
+    "**/vendor/php-stubs/**/tests/**"
+  ]
+}
