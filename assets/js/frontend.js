@@ -230,49 +230,6 @@
         }
     };
 
-    // Розширена анімація
-    const animationCSS = `
-        <style>
-        .rp-animate-in {
-            animation: rpSlideInUp 0.4s ease-out forwards;
-        }
-        
-        @keyframes rpSlideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(15px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .rp-payparts-option {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .rp-payparts-option:hover {
-            transform: translateY(-2px);
-        }
-        
-        .rp-payparts-option.rp-selected {
-            transform: translateY(-1px) scale(1.02);
-        }
-        
-        .rp-error {
-            color: #dc2626 !important;
-        }
-        
-        .rp-loading .rp-option-details {
-            opacity: 0.6;
-        }
-        </style>
-    `;
-    
-    // Додаємо стилі
-    $('head').append(animationCSS);
-
     // Розширені функції
     const AdvancedFeatures = {
         

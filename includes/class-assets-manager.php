@@ -120,6 +120,15 @@ class RP_Payparts_Assets_Manager {
                 'confirmDelete' => __( 'Ви впевнені?', 'rp-payparts' ),
                 'saved' => __( 'Збережено', 'rp-payparts' ),
                 'error' => __( 'Помилка', 'rp-payparts' ),
+                'testing' => __( 'Тестування...', 'rp-payparts' ),
+                'testApi' => __( 'Тест підключення API', 'rp-payparts' ),
+                'testingApi' => __( 'Тестуємо підключення до API...', 'rp-payparts' ),
+                'connectionError' => __( 'Помилка підключення', 'rp-payparts' ),
+                'banksFound' => __( 'Знайдено банків:', 'rp-payparts' ),
+                'clearing' => __( 'Очищаємо...', 'rp-payparts' ),
+                'clearingCache' => __( 'Очищаємо кеш...', 'rp-payparts' ),
+                'clearCache' => __( 'Очистити кеш', 'rp-payparts' ),
+                'cacheClearError' => __( 'Помилка очищення кешу', 'rp-payparts' ),
             ),
         ) );
     }
@@ -157,6 +166,16 @@ class RP_Payparts_Assets_Manager {
      * Перевірка чи потрібно завантажувати адмін ресурси
      */
     private function should_load_admin_assets( $hook ) {
+        // Сторінка RozetkaPay в меню WooCommerce
+        if ( 'woocommerce_page_rp-payparts' === $hook ) {
+            return true;
+        }
+
+        // Сторінка редагування замовлення (класична та HPOS)
+        if ( in_array( $hook, array( 'post.php', 'woocommerce_page_wc-orders' ), true ) ) {
+            return true;
+        }
+
         // Сторінки налаштувань WooCommerce
         $wc_admin_pages = array(
             'woocommerce_page_wc-settings',
@@ -173,7 +192,7 @@ class RP_Payparts_Assets_Manager {
         $section = isset( $_GET['section'] ) ? sanitize_text_field( wp_unslash( $_GET['section'] ) ) : '';
 
         // Сторінка налаштувань нашого плагіна
-        if ( 'wc-settings' === $page && 'checkout' === $tab && ( empty( $section ) || 'rp_payparts' === $section ) ) {
+        if ( 'wc-settings' === $page && 'checkout' === $tab && ( empty( $section ) || 'rp_payparts' === $section || 'rp_standard' === $section ) ) {
             return true;
         }
 

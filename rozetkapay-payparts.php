@@ -943,54 +943,8 @@ add_action( 'init', function(){
 } );
 
 /**
- * DEBUG-функції для розробників
+ * AJAX: системна інформація для відлагодження (admin only)
  */
-// Показати інформацію про зареєстровані hooks (лише для адміністраторів)
-add_action( 'wp_footer', function() {
-    if ( ! current_user_can( 'manage_options' ) || ! isset( $_GET['debug_rp_hooks'] ) ) {
-        return;
-    }
-    
-    global $wp_filter;
-    
-    echo '<!-- RozetkaPay Debug Information -->';
-    echo '<script>console.log("=== RozetkaPay Hooks Debug ===");</script>';
-    
-    $hooks_to_check = [
-        'woocommerce_api_rp_payparts',
-        'woocommerce_api_rp_standard',
-        'init',
-        'plugins_loaded',
-        'woocommerce_loaded'
-    ];
-    
-    foreach ( $hooks_to_check as $hook ) {
-        if ( isset( $wp_filter[ $hook ] ) ) {
-            echo '<script>console.log("✅ Hook registered: ' . esc_js( $hook ) . '");</script>';
-            
-            // Показуємо кількість callback\'ів для hook\'а
-            $callback_count = 0;
-            foreach ( $wp_filter[ $hook ]->callbacks as $priority => $callbacks ) {
-                $callback_count += count( $callbacks );
-            }
-            echo '<script>console.log("   📊 Callbacks count: ' . $callback_count . '");</script>';
-        } else {
-            echo '<script>console.log("❌ Hook NOT registered: ' . esc_js( $hook ) . '");</script>';
-        }
-    }
-    
-    // Показуємо URLs для callback\'ів
-    echo '<script>console.log("🔗 Callback URLs:");</script>';
-    echo '<script>console.log("   Payparts: ' . esc_js( home_url( '/wc-api/rp_payparts' ) ) . '");</script>';
-    echo '<script>console.log("   Standard: ' . esc_js( home_url( '/wc-api/rp_standard' ) ) . '");</script>';
-    
-    // Показуємо інформацію про класи
-    echo '<script>console.log("📦 Classes status:");</script>';
-    echo '<script>console.log("   RP_Payparts_Gateway: ' . ( class_exists( 'RP_Payparts_Gateway' ) ? 'EXISTS' : 'NOT FOUND' ) . '");</script>';
-    echo '<script>console.log("   RP_Standard_Gateway: ' . ( class_exists( 'RP_Standard_Gateway' ) ? 'EXISTS' : 'NOT FOUND' ) . '");</script>';
-}, 999 );
-
-// Показати системну інформацію для відлагодження
 add_action( 'wp_ajax_rp_payparts_system_info', function() {
     if ( ! current_user_can( 'manage_options' ) ) {
         wp_die( 'Access denied' );
