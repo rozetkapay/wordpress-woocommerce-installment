@@ -113,12 +113,15 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	public function handle_callback() {
 		header( 'Content-Type: text/plain; charset=utf-8' );
 
+		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
+		$request_uri    = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+
 		error_log( 'RozetkaPay Payparts Callback: === STARTED ===' );
-		error_log( 'RozetkaPay Callback: Request method: ' . $_SERVER['REQUEST_METHOD'] );
-		error_log( 'RozetkaPay Callback: Request URI: ' . $_SERVER['REQUEST_URI'] );
+		error_log( 'RozetkaPay Callback: Request method: ' . $request_method );
+		error_log( 'RozetkaPay Callback: Request URI: ' . $request_uri );
 
 		// GET-запити відхиляємо
-		if ( $_SERVER['REQUEST_METHOD'] === 'GET' ) {
+		if ( $request_method === 'GET' ) {
 			error_log( 'RozetkaPay Callback: GET request - returning error' );
 			http_response_code( 400 );
 			echo 'Empty payload';
@@ -127,10 +130,6 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 		// Отримуємо payload
 		$payload = file_get_contents( 'php://input' );
-
-		if ( empty( $payload ) && ! empty( $_POST ) ) {
-			$payload = json_encode( $_POST );
-		}
 
 		if ( empty( $payload ) ) {
 			error_log( 'RozetkaPay Callback: Empty payload' );
@@ -153,7 +152,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 		foreach ( $possible_headers as $header ) {
 			if ( isset( $_SERVER[ $header ] ) && ! empty( $_SERVER[ $header ] ) ) {
-				$signature = $_SERVER[ $header ];
+				$signature = sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
 				error_log( "RozetkaPay Callback: Got signature from $header" );
 				break;
 			}
@@ -1076,12 +1075,12 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	public function payment_fields() {
 		// Основний опис
 		if ( $this->description ) {
-			echo wpautop( wp_kses_post( $this->description ) );
+			echo wp_kses_post( wpautop( $this->description ) );
 		}
 
 		// Додаткове повідомлення на checkout
 		if ( $this->checkout_message ) {
-			echo '<div class="rp-checkout-message">' . wpautop( wp_kses_post( $this->checkout_message ) ) . '</div>';
+			echo '<div class="rp-checkout-message">' . wp_kses_post( wpautop( $this->checkout_message ) ) . '</div>';
 		}
 
 		// Статус налаштування
@@ -1128,7 +1127,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		echo '<div class="rp-payparts-container">';
 		echo '<div class="rp-payparts-header">';
 		echo '<span class="rp-payparts-icon"> </span>';
-		echo '<h4>' . __( 'Оберіть план оплати частинами', 'rp-payparts' ) . '</h4>';
+		echo '<h4>' . esc_html__( 'Оберіть план оплати частинами', 'rp-payparts' ) . '</h4>';
 		echo '</div>';
 
 		echo '<div class="rp-payparts-options">';
@@ -1309,7 +1308,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 						foreach ( $unique_terms as $index => $term ) :
 							$position = $terms_count > 1 ? ( $index / ( $terms_count - 1 ) ) * 100 : 50;
 							?>
-							<div class="rp-slider-mark" style="left: <?php echo $position; ?>%;">
+							<div class="rp-slider-mark" style="left: <?php echo esc_attr( $position ); ?>%;">
 								<div class="rp-slider-mark-line"></div>
 								<div class="rp-slider-mark-label <?php echo 0 === $index ? 'active' : ''; ?>">
 									<?php echo esc_html( $term ); ?>
@@ -1384,7 +1383,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			return;
 		}
 
-		if ( ! wp_verify_nonce( wp_unslash( $_POST['rp_payparts_nonce_field'] ), 'rp_payparts_nonce' ) ) {
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['rp_payparts_nonce_field'] ) ), 'rp_payparts_nonce' ) ) {
 			return;
 		}
 
@@ -1841,11 +1840,11 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 		echo '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">';
 		echo '<h3>ℹ️ Інформація про плагін</h3>';
-		echo '<p><strong>Версія:</strong> ' . RP_PAYPARTS_VERSION . '</p>';
+		echo '<p><strong>Версія:</strong> ' . esc_html( RP_PAYPARTS_VERSION ) . '</p>';
 		echo '<p><strong>Статус:</strong> ' . ( $this->enabled === 'yes' ? '✅ Активний' : '❌ Неактивний' ) . '</p>';
 		echo '<p><strong>Режим:</strong> ' . ( $this->test_mode ? '🧪 Тестовий' : '🚀 Продакшн' ) . '</p>';
 
-		echo '<p><strong>Callback URL:</strong> <code>' . home_url( '/wc-api/' . $this->id ) . '</code></p>';
+		echo '<p><strong>Callback URL:</strong> <code>' . esc_url( home_url( '/wc-api/' . $this->id ) ) . '</code></p>';
 
 		$banks_info = $this->get_banks_info_for_admin();
 		if ( ! empty( $banks_info ) ) {
@@ -1855,7 +1854,9 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		echo '<p><strong>Логіка перенаправлення:</strong> RozetkaPay → сторінка оплати, інші банки → thank you сторінка з інструкціями</p>';
 		echo '</div>';
 
-		echo '<table class="form-table">' . $this->generate_settings_html( $this->get_form_fields(), false ) . '</table>';
+		echo '<table class="form-table">';
+		$this->generate_settings_html( $this->get_form_fields() );
+		echo '</table>';
 	}
 
 	/**
@@ -1893,6 +1894,10 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 * Валідація налаштувань адмінки
 	 */
 	public function validate_admin_settings() {
+		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'woocommerce-settings' ) ) {
+			return;
+		}
+
 		if ( ! isset( $_POST['woocommerce_rp_payparts_enabled'] ) ) {
 			return;
 		}
@@ -1902,13 +1907,17 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			return;
 		}
 
-		$this->validate_fields();
+		$this->validate_admin_fields();
 	}
 
 	/**
 	 * Валідація полів адмінки
 	 */
-	public function validate_fields() {
+	public function validate_admin_fields() {
+		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'woocommerce-settings' ) ) {
+			return false;
+		}
+
 		$errors = array();
 
 		$enabled       = isset( $_POST['woocommerce_rp_payparts_enabled'] ) && $_POST['woocommerce_rp_payparts_enabled'] === '1';

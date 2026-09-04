@@ -123,7 +123,7 @@ class RP_Payparts_Banks_Page {
 
 	public static function render_page() {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_die( __( 'Access denied', 'rp-payparts' ) ); }
+			wp_die( esc_html__( 'Access denied', 'rp-payparts' ) ); }
 
 		$settings = self::get_settings();
 		$login    = $settings['api_user'] ?? '';
@@ -131,7 +131,7 @@ class RP_Payparts_Banks_Page {
 
 		$amount       = isset( $_GET['amount'] ) ? floatval( $_GET['amount'] ) : null;
 		$term         = isset( $_GET['term'] ) ? intval( $_GET['term'] ) : null;
-		$include_fees = isset( $_GET['include_fees'] ) ? sanitize_text_field( $_GET['include_fees'] ) : null;
+		$include_fees = isset( $_GET['include_fees'] ) ? sanitize_text_field( wp_unslash( $_GET['include_fees'] ) ) : null;
 
 		$banks = array();
 		$error = null;

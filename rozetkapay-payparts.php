@@ -1090,7 +1090,7 @@ add_action(
 			'wordpress_version'   => get_bloginfo( 'version' ),
 			'woocommerce_version' => defined( 'WC_VERSION' ) ? WC_VERSION : 'Not detected',
 			'php_version'         => PHP_VERSION,
-			'server_info'         => $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown',
+			'server_info'         => isset( $_SERVER['SERVER_SOFTWARE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) : 'Unknown',
 			'callback_urls'       => array(
 				'payparts' => home_url( '/wc-api/rp_payparts' ),
 				'standard' => home_url( '/wc-api/rp_standard' ),

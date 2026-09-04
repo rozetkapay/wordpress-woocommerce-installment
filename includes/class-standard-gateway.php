@@ -936,14 +936,24 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 		echo '<p><strong>Gateway ID:</strong> ' . esc_html( $this->id ) . '</p>';
 		echo '<p><strong>API User:</strong> ' . esc_html( $this->api_user ) . '</p>';
 		echo '<p><strong>Gateway Enabled:</strong> ' . ( $this->enabled === 'yes' ? 'ТАК' : 'НІ' ) . '</p>';
-		echo '<p><strong>Callback URL:</strong> ' . home_url( '/wc-api/' . $this->id ) . '</p>';
+		echo '<p><strong>Callback URL:</strong> ' . esc_url( home_url( '/wc-api/' . $this->id ) ) . '</p>';
 		echo '</div>';
 		echo '</div>';
 	}
 
 	private function output_admin_javascript() {
-		?>
-		<script>
+		$handle = 'rozetkapay-payparts-admin';
+
+		wp_localize_script(
+			$handle,
+			'rpStandardAdmin',
+			array(
+				'testApiNonce'      => wp_create_nonce( 'rp_test_api' ),
+				'testCallbackNonce' => wp_create_nonce( 'rp_test_callback' ),
+			)
+		);
+
+		$script = <<<'JS'
 		jQuery(document).ready(function($) {
 			console.log('RozetkaPay: Admin JavaScript loaded');
 			console.log('RozetkaPay: ajaxurl =', ajaxurl);
@@ -959,7 +969,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 				
 				var requestData = {
 					action: 'rp_test_api_connection',
-					security: '<?php echo wp_create_nonce( 'rp_test_api' ); ?>',
+					security: rpStandardAdmin.testApiNonce,
 					gateway: 'rp_standard'
 				};
 				
@@ -1023,7 +1033,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 				
 				var requestData = {
 					action: 'rp_test_callback_processing',
-					security: '<?php echo wp_create_nonce( 'rp_test_callback' ); ?>',
+					security: rpStandardAdmin.testCallbackNonce,
 					gateway: 'rp_standard'
 				};
 				
@@ -1051,8 +1061,9 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 				});
 			});
 		});
-		</script>
-		<?php
+JS;
+
+		wp_add_inline_script( $handle, $script );
 	}
 
 	public function ajax_test_api_connection() {
@@ -1063,7 +1074,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			wp_send_json_error( array( 'message' => 'Недостатньо прав доступу' ) );
 		}
 
-		if ( ! wp_verify_nonce( $_POST['security'], 'rp_test_api' ) ) {
+		if ( ! isset( $_POST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['security'] ) ), 'rp_test_api' ) ) {
 			error_log( 'RozetkaPay: Nonce verification failed' );
 			wp_send_json_error( array( 'message' => 'Помилка безпеки (nonce)' ) );
 		}
@@ -1127,7 +1138,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			wp_send_json_error( array( 'message' => 'Недостатньо прав доступу' ) );
 		}
 
-		if ( ! wp_verify_nonce( $_POST['security'], 'rp_test_callback' ) ) {
+		if ( ! isset( $_POST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['security'] ) ), 'rp_test_callback' ) ) {
 			wp_send_json_error( array( 'message' => 'Помилка безпеки (nonce)' ) );
 		}
 
@@ -1144,7 +1155,11 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			wp_send_json_error( array( 'message' => 'Недостатньо прав' ) );
 		}
 
-		$order_id = intval( $_POST['order_id'] ?? 0 );
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'rp_admin_nonce' ) ) {
+			wp_send_json_error( array( 'message' => 'Помилка безпеки (nonce)' ) );
+		}
+
+		$order_id = isset( $_POST['order_id'] ) ? intval( wp_unslash( $_POST['order_id'] ) ) : 0;
 		if ( ! $order_id ) {
 			wp_send_json_error( array( 'message' => 'Невірний ID замовлення' ) );
 		}

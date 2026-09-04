@@ -47,7 +47,7 @@ class RP_Payparts_Admin {
 	 * Адмін-сторінка
 	 */
 	public function admin_page() {
-		$active_tab = $_GET['tab'] ?? 'overview';
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'overview';
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'RozetkaPay Оплата частинами', 'rp-payparts' ); ?></h1>
@@ -189,11 +189,11 @@ class RP_Payparts_Admin {
 						<?php esc_html_e( 'Налаштування картками', 'rp-payparts' ); ?>
 					</a>
 
-					<button type="button" class="button" id="rp-test-connection" data-nonce="<?php echo wp_create_nonce( 'rp_admin_nonce' ); ?>">
+					<button type="button" class="button" id="rp-test-connection" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rp_admin_nonce' ) ); ?>">
 						<?php esc_html_e( 'Тест підключення API', 'rp-payparts' ); ?>
 					</button>
 
-					<button type="button" class="button" id="rp-clear-cache" data-nonce="<?php echo wp_create_nonce( 'rp_admin_nonce' ); ?>">
+					<button type="button" class="button" id="rp-clear-cache" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rp_admin_nonce' ) ); ?>">
 						<?php esc_html_e( 'Очистити кеш', 'rp-payparts' ); ?>
 					</button>
 				</div>
