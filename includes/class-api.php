@@ -345,7 +345,7 @@ class RP_Payparts_API {
 		if ( empty( $this->api_user ) || empty( $this->api_pass ) ) {
 			return array(
 				'success' => false,
-				'message' => __( 'Не вказані API ключі', 'rp-payparts' ),
+				'message' => __( 'Не вказані API ключі', 'rozetkapay-payparts' ),
 			);
 		}
 
@@ -360,7 +360,7 @@ class RP_Payparts_API {
 
 		return array(
 			'success'     => true,
-			'message'     => __( 'Підключення до API успішне', 'rp-payparts' ),
+			'message'     => __( 'Підключення до API успішне', 'rozetkapay-payparts' ),
 			'banks_count' => is_array( $result ) ? count( $result ) : 0,
 		);
 	}

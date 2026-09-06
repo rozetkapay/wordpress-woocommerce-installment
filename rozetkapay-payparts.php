@@ -6,7 +6,7 @@
  * Version: 2.0.9
  * Author: RozetkaPay
  * Author URI: https://rozetkapay.com/
- * Text Domain: rp-payparts
+ * Text Domain: rozetkapay-payparts
  * Domain Path: /languages
  * Requires at least: 5.0
  * Tested up to: 6.7
@@ -61,7 +61,7 @@ function rp_payparts_check_woocommerce() {
 				echo '<div class="notice notice-error"><p>';
 				printf(
 				/* translators: %s: Plugin name */
-					esc_html__( '%s потребує активного WooCommerce для роботи.', 'rp-payparts' ),
+					esc_html__( '%s потребує активного WooCommerce для роботи.', 'rozetkapay-payparts' ),
 					'<strong>RozetkaPay Payparts</strong>'
 				);
 				echo '</p></div>';
@@ -108,7 +108,7 @@ function rp_payparts_init() {
 						echo '<div class="notice notice-error"><p>';
 						printf(
 						/* translators: %s: File name */
-							esc_html__( 'RozetkaPay Payparts: Критичний файл не знайдено - %s', 'rp-payparts' ),
+							esc_html__( 'RozetkaPay Payparts: Критичний файл не знайдено - %s', 'rozetkapay-payparts' ),
 							esc_html( $file )
 						);
 						echo '</p></div>';
@@ -168,8 +168,8 @@ function rp_payparts_activate() {
 	if ( ! class_exists( 'WooCommerce' ) ) {
 		deactivate_plugins( plugin_basename( __FILE__ ) );
 		wp_die(
-			esc_html__( 'RozetkaPay Payparts потребує активного WooCommerce для роботи.', 'rp-payparts' ),
-			esc_html__( 'Помилка активації плагіна', 'rp-payparts' ),
+			esc_html__( 'RozetkaPay Payparts потребує активного WooCommerce для роботи.', 'rozetkapay-payparts' ),
+			esc_html__( 'Помилка активації плагіна', 'rozetkapay-payparts' ),
 			array( 'back_link' => true )
 		);
 	}
@@ -178,8 +178,8 @@ function rp_payparts_activate() {
 	if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
 		deactivate_plugins( plugin_basename( __FILE__ ) );
 		wp_die(
-			esc_html__( 'RozetkaPay Payparts потребує PHP 7.4 або вище.', 'rp-payparts' ),
-			esc_html__( 'Помилка активації плагіна', 'rp-payparts' ),
+			esc_html__( 'RozetkaPay Payparts потребує PHP 7.4 або вище.', 'rozetkapay-payparts' ),
+			esc_html__( 'Помилка активації плагіна', 'rozetkapay-payparts' ),
 			array( 'back_link' => true )
 		);
 	}
@@ -262,8 +262,8 @@ function rp_payparts_set_default_options() {
 	$default_payparts_settings = array(
 		'enabled'               => 'no',
 		'test_mode'             => 'no',
-		'title'                 => __( 'Оплата частинами', 'rp-payparts' ),
-		'description'           => __( 'Оберіть зручний план оплати частинами нижче.', 'rp-payparts' ),
+		'title'                 => __( 'Оплата частинами', 'rozetkapay-payparts' ),
+		'description'           => __( 'Оберіть зручний план оплати частинами нижче.', 'rozetkapay-payparts' ),
 		'display_style'         => 'slider',
 		'debug_mode'            => 'yes', // Вмикаємо debug за замовчуванням
 		'min_amount'            => '0',
@@ -277,8 +277,8 @@ function rp_payparts_set_default_options() {
 	$default_standard_settings = array(
 		'enabled'               => 'no',
 		'test_mode'             => 'no',
-		'title'                 => __( 'RozetkaPay', 'rp-payparts' ),
-		'description'           => __( 'Оплата банківською карткою через RozetkaPay.', 'rp-payparts' ),
+		'title'                 => __( 'RozetkaPay', 'rozetkapay-payparts' ),
+		'description'           => __( 'Оплата банківською карткою через RozetkaPay.', 'rozetkapay-payparts' ),
 		'two_step_payment'      => 'no',
 		'debug_mode'            => 'yes', // Вмикаємо debug за замовчуванням
 		'enable_status_polling' => 'yes',
@@ -320,19 +320,12 @@ function rp_payparts_schedule_cleanup() {
 function rp_payparts_plugin_action_links( $links ) {
 	$settings_links = array(
 		'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_payparts' ) ) . '">' .
-			esc_html__( 'Оплата частинами', 'rp-payparts' ) . '</a>',
+			esc_html__( 'Оплата частинами', 'rozetkapay-payparts' ) . '</a>',
 		'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_standard' ) ) . '">' .
-			esc_html__( 'Картки', 'rp-payparts' ) . '</a>',
+			esc_html__( 'Картки', 'rozetkapay-payparts' ) . '</a>',
 	);
 
 	return array_merge( $settings_links, $links );
-}
-
-/**
- * Load plugin textdomain for translations
- */
-function rp_payparts_load_textdomain() {
-	load_plugin_textdomain( 'rp-payparts', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 }
 
 /**
@@ -343,11 +336,11 @@ function rp_payparts_activation_notice() {
 		delete_transient( 'rp_payparts_activation_notice' );
 
 		echo '<div class="notice notice-success is-dismissible">';
-		echo '<p><strong>' . esc_html__( 'RozetkaPay Payparts активовано!', 'rp-payparts' ) . '</strong></p>';
+		echo '<p><strong>' . esc_html__( 'RozetkaPay Payparts активовано!', 'rozetkapay-payparts' ) . '</strong></p>';
 		echo '<p>' . sprintf(
-			esc_html__( 'Налаштуйте методи оплати: %1$s або %2$s', 'rp-payparts' ),
-			'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_payparts' ) ) . '">' . esc_html__( 'Оплата частинами', 'rp-payparts' ) . '</a>',
-			'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_standard' ) ) . '">' . esc_html__( 'Банківські картки', 'rp-payparts' ) . '</a>'
+			esc_html__( 'Налаштуйте методи оплати: %1$s або %2$s', 'rozetkapay-payparts' ),
+			'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_payparts' ) ) . '">' . esc_html__( 'Оплата частинами', 'rozetkapay-payparts' ) . '</a>',
+			'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_standard' ) ) . '">' . esc_html__( 'Банківські картки', 'rozetkapay-payparts' ) . '</a>'
 		) . '</p>';
 		echo '</div>';
 	}
@@ -361,7 +354,6 @@ add_action( 'plugins_loaded', 'rp_payparts_init', 11 );
 
 // Стандартні WordPress hooks
 add_action( 'init', 'rp_payparts_schedule_cleanup' );
-add_action( 'plugins_loaded', 'rp_payparts_load_textdomain' );
 add_action( 'admin_notices', 'rp_payparts_activation_notice' );
 
 // Реєструємо hooks активації/деактивації/видалення
@@ -384,7 +376,7 @@ add_filter(
 		if ( ! isset( $schedules['every_ten_minutes'] ) ) {
 			$schedules['every_ten_minutes'] = array(
 				'interval' => 600, // 10 хвилин
-				'display'  => __( 'Every 10 minutes (RozetkaPay)', 'rp-payparts' ),
+				'display'  => __( 'Every 10 minutes (RozetkaPay)', 'rozetkapay-payparts' ),
 			);
 		}
 		return $schedules;

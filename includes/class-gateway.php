@@ -37,9 +37,9 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 	public function __construct() {
 		$this->id                 = 'rp_payparts';
-		$this->method_title       = __( 'RozetkaPay Оплата частинами', 'rp-payparts' );
-		$this->method_description = __( 'Прийом платежів частинами через RozetkaPay', 'rp-payparts' );
-		$this->title              = __( 'Оплата частинами', 'rp-payparts' );
+		$this->method_title       = __( 'RozetkaPay Оплата частинами', 'rozetkapay-payparts' );
+		$this->method_description = __( 'Прийом платежів частинами через RozetkaPay', 'rozetkapay-payparts' );
+		$this->title              = __( 'Оплата частинами', 'rozetkapay-payparts' );
 		$this->has_fields         = true;
 		$this->supports           = array( 'products' );
 
@@ -54,7 +54,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 		// Основні налаштування
 		$this->enabled     = $this->get_option( 'enabled' );
-		$this->title       = $this->get_option( 'title', __( 'Оплата частинами', 'rp-payparts' ) );
+		$this->title       = $this->get_option( 'title', __( 'Оплата частинами', 'rozetkapay-payparts' ) );
 		$this->description = $this->get_option( 'description' );
 
 		// API налаштування
@@ -577,13 +577,13 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			if ( $calculations['min_payment'] === $calculations['max_payment'] ) {
 				// Якщо лише один варіант платежу
 				$message = sprintf(
-					__( 'Доступна оплата частинами — %s грн на місяць', 'rp-payparts' ),
+					__( 'Доступна оплата частинами — %s грн на місяць', 'rozetkapay-payparts' ),
 					number_format( $calculations['min_payment'], 0, ',', ' ' )
 				);
 			} else {
 				// Якщо декілька варіантів
 				$message = sprintf(
-					__( 'Розстрочка від %1$s до %2$s грн/міс', 'rp-payparts' ),
+					__( 'Розстрочка від %1$s до %2$s грн/міс', 'rozetkapay-payparts' ),
 					number_format( $calculations['min_payment'], 0, ',', ' ' ),
 					number_format( $calculations['max_payment'], 0, ',', ' ' )
 				);
@@ -662,70 +662,70 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	public function init_form_fields() {
 		$this->form_fields = array(
 			'enabled'               => array(
-				'title'   => __( 'Увімкнути/Вимкнути', 'rp-payparts' ),
+				'title'   => __( 'Увімкнути/Вимкнути', 'rozetkapay-payparts' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Увімкнути RozetkaPay оплату частинами', 'rp-payparts' ),
+				'label'   => __( 'Увімкнути RozetkaPay оплату частинами', 'rozetkapay-payparts' ),
 				'default' => 'no',
 			),
 			'title'                 => array(
-				'title'       => __( 'Назва методу', 'rp-payparts' ),
+				'title'       => __( 'Назва методу', 'rozetkapay-payparts' ),
 				'type'        => 'text',
-				'description' => __( 'Назва методу оплати, яку бачить користувач під час оформлення замовлення.', 'rp-payparts' ),
-				'default'     => __( 'Оплата частинами', 'rp-payparts' ),
+				'description' => __( 'Назва методу оплати, яку бачить користувач під час оформлення замовлення.', 'rozetkapay-payparts' ),
+				'default'     => __( 'Оплата частинами', 'rozetkapay-payparts' ),
 				'desc_tip'    => true,
 			),
 			'description'           => array(
-				'title'       => __( 'Опис на сторінці оформлення', 'rp-payparts' ),
+				'title'       => __( 'Опис на сторінці оформлення', 'rozetkapay-payparts' ),
 				'type'        => 'textarea',
-				'description' => __( 'Опис методу оплати, який відображається на сторінці оформлення замовлення.', 'rp-payparts' ),
-				'default'     => __( 'Оберіть зручний план оплати частинами нижче.', 'rp-payparts' ),
+				'description' => __( 'Опис методу оплати, який відображається на сторінці оформлення замовлення.', 'rozetkapay-payparts' ),
+				'default'     => __( 'Оберіть зручний план оплати частинами нижче.', 'rozetkapay-payparts' ),
 				'desc_tip'    => true,
 			),
 
 			'enable_status_polling' => array(
-				'title'       => __( 'Включити переопитування статусів', 'rp-payparts' ),
+				'title'       => __( 'Включити переопитування статусів', 'rozetkapay-payparts' ),
 				'type'        => 'checkbox',
-				'label'       => __( 'Опитування Rozetka по payment info кожні 10 хвилин', 'rp-payparts' ),
+				'label'       => __( 'Опитування Rozetka по payment info кожні 10 хвилин', 'rozetkapay-payparts' ),
 				'default'     => 'yes',
 				'desc_tip'    => true,
-				'description' => __( 'Якщо вимкнено, крон-завдання пропускає замовлення цього методу.', 'rp-payparts' ),
+				'description' => __( 'Якщо вимкнено, крон-завдання пропускає замовлення цього методу.', 'rozetkapay-payparts' ),
 			),
 
 			'order_ref_prefix'      => array(
-				'title'       => __( 'Префікс номера для Rozetka', 'rp-payparts' ),
+				'title'       => __( 'Префікс номера для Rozetka', 'rozetkapay-payparts' ),
 				'type'        => 'text',
 				'default'     => 'roz1',
 				'desc_tip'    => true,
-				'description' => __( 'Формат external_id: {prefix}-{номер замовлення}. Залишіть порожнім — лише номер.', 'rp-payparts' ),
+				'description' => __( 'Формат external_id: {prefix}-{номер замовлення}. Залишіть порожнім — лише номер.', 'rozetkapay-payparts' ),
 			),
 
 			'api_section'           => array(
-				'title'       => __( ' Налаштування API', 'rp-payparts' ),
+				'title'       => __( ' Налаштування API', 'rozetkapay-payparts' ),
 				'type'        => 'title',
-				'description' => __( 'Введіть ваші API ключі від RozetkaPay.', 'rp-payparts' ),
+				'description' => __( 'Введіть ваші API ключі від RozetkaPay.', 'rozetkapay-payparts' ),
 			),
 			'api_user'              => array(
-				'title'       => __( 'API Користувач', 'rp-payparts' ),
+				'title'       => __( 'API Користувач', 'rozetkapay-payparts' ),
 				'type'        => 'text',
-				'description' => __( 'Ваш API логін від RozetkaPay', 'rp-payparts' ),
+				'description' => __( 'Ваш API логін від RozetkaPay', 'rozetkapay-payparts' ),
 				'desc_tip'    => true,
 			),
 			'api_pass'              => array(
-				'title'       => __( 'API Пароль', 'rp-payparts' ),
+				'title'       => __( 'API Пароль', 'rozetkapay-payparts' ),
 				'type'        => 'password',
-				'description' => __( 'Ваш API пароль від RozetkaPay', 'rp-payparts' ),
+				'description' => __( 'Ваш API пароль від RozetkaPay', 'rozetkapay-payparts' ),
 				'desc_tip'    => true,
 			),
 
 			'payment_section'       => array(
-				'title'       => __( ' Налаштування платежів', 'rp-payparts' ),
+				'title'       => __( ' Налаштування платежів', 'rozetkapay-payparts' ),
 				'type'        => 'title',
-				'description' => __( 'Налаштування лімітів та умов платежів.', 'rp-payparts' ),
+				'description' => __( 'Налаштування лімітів та умов платежів.', 'rozetkapay-payparts' ),
 			),
 			'min_amount'            => array(
-				'title'             => __( 'Мінімальна сума', 'rp-payparts' ),
+				'title'             => __( 'Мінімальна сума', 'rozetkapay-payparts' ),
 				'type'              => 'number',
-				'description'       => __( 'Мінімальна сума замовлення для розстрочки (0 = використовувати ліміти API)', 'rp-payparts' ),
+				'description'       => __( 'Мінімальна сума замовлення для розстрочки (0 = використовувати ліміти API)', 'rozetkapay-payparts' ),
 				'default'           => '0',
 				'desc_tip'          => true,
 				'custom_attributes' => array(
@@ -734,9 +734,9 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				),
 			),
 			'max_amount'            => array(
-				'title'             => __( 'Максимальна сума', 'rp-payparts' ),
+				'title'             => __( 'Максимальна сума', 'rozetkapay-payparts' ),
 				'type'              => 'number',
-				'description'       => __( 'Максимальна сума замовлення для розстрочки (0 = використовувати ліміти API)', 'rp-payparts' ),
+				'description'       => __( 'Максимальна сума замовлення для розстрочки (0 = використовувати ліміти API)', 'rozetkapay-payparts' ),
 				'default'           => '0',
 				'desc_tip'          => true,
 				'custom_attributes' => array(
@@ -745,9 +745,9 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				),
 			),
 			'allowed_banks'         => array(
-				'title'       => __( 'Дозволені банки', 'rp-payparts' ),
+				'title'       => __( 'Дозволені банки', 'rozetkapay-payparts' ),
 				'type'        => 'text',
-				'description' => __( 'Список банків через кому (залишіть порожнім для всіх доступних банків):', 'rp-payparts' ) . '<br>' .
+				'description' => __( 'Список банків через кому (залишіть порожнім для всіх доступних банків):', 'rozetkapay-payparts' ) . '<br>' .
 								'<div class="rp-banks-list">' .
 								'<div class="rp-bank-item"><code>abank</code> — ABank</div>' .
 								'<div class="rp-bank-item"><code>monobank</code> — Monobank</div>' .
@@ -760,9 +760,9 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				'placeholder' => 'rozetkapay,privatbank,monobank',
 			),
 			'allowed_terms'         => array(
-				'title'       => __( 'Дозволені терміни', 'rp-payparts' ),
+				'title'       => __( 'Дозволені терміни', 'rozetkapay-payparts' ),
 				'type'        => 'text',
-				'description' => __( 'Список термінів в місяцях через кому (залишіть порожнім для всіх доступних термінів):', 'rp-payparts' ) . '<br>' .
+				'description' => __( 'Список термінів в місяцях через кому (залишіть порожнім для всіх доступних термінів):', 'rozetkapay-payparts' ) . '<br>' .
 								'<div class="rp-terms-list">' .
 								'<div class="rp-term-item"><code>2</code> — 2 місяці</div>' .
 								'<div class="rp-term-item"><code>3</code> — 3 місяці</div>' .
@@ -775,26 +775,26 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				'placeholder' => '3,6,12,24',
 			),
 			'display_section'       => array(
-				'title'       => __( ' Налаштування відображення', 'rp-payparts' ),
+				'title'       => __( ' Налаштування відображення', 'rozetkapay-payparts' ),
 				'type'        => 'title',
-				'description' => __( 'Налаштування зовнішнього вигляду.', 'rp-payparts' ),
+				'description' => __( 'Налаштування зовнішнього вигляду.', 'rozetkapay-payparts' ),
 			),
 			'display_style'         => array(
-				'title'       => __( 'Стиль відображення', 'rp-payparts' ),
+				'title'       => __( 'Стиль відображення', 'rozetkapay-payparts' ),
 				'type'        => 'select',
-				'description' => __( 'Оберіть спосіб відображення варіантів оплати', 'rp-payparts' ),
+				'description' => __( 'Оберіть спосіб відображення варіантів оплати', 'rozetkapay-payparts' ),
 				'default'     => 'slider',
 				'desc_tip'    => true,
 				'options'     => array(
-					'cards'  => __( 'Картки (класичний)', 'rp-payparts' ),
-					'slider' => __( 'Повзунок (сучасний)', 'rp-payparts' ),
-					'list'   => __( 'Список (компактний)', 'rp-payparts' ),
+					'cards'  => __( 'Картки (класичний)', 'rozetkapay-payparts' ),
+					'slider' => __( 'Повзунок (сучасний)', 'rozetkapay-payparts' ),
+					'list'   => __( 'Список (компактний)', 'rozetkapay-payparts' ),
 				),
 			),
 			'cart_message'          => array(
-				'title'       => __( 'Повідомлення в кошику', 'rp-payparts' ),
+				'title'       => __( 'Повідомлення в кошику', 'rozetkapay-payparts' ),
 				'type'        => 'textarea',
-				'description' => __( 'Повідомлення, що показується в кошику. Доступні плейсхолдери:', 'rp-payparts' ) . '<br>' .
+				'description' => __( 'Повідомлення, що показується в кошику. Доступні плейсхолдери:', 'rozetkapay-payparts' ) . '<br>' .
 								'<div class="rp-placeholders-list">' .
 								'<span class="rp-placeholder"><code>{min}</code> — мінімальний щомісячний платіж</span>' .
 								'<span class="rp-placeholder"><code>{max}</code> — максимальний щомісячний платіж</span>' .
@@ -806,31 +806,31 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				'placeholder' => 'Розстрочка від {min} до {max} грн/міс',
 			),
 			'checkout_message'      => array(
-				'title'       => __( 'Додаткове повідомлення на checkout', 'rp-payparts' ),
+				'title'       => __( 'Додаткове повідомлення на checkout', 'rozetkapay-payparts' ),
 				'type'        => 'textarea',
-				'description' => __( 'Додаткова інформація на сторінці оформлення замовлення. Показується під основним описом методу оплати.', 'rp-payparts' ),
+				'description' => __( 'Додаткова інформація на сторінці оформлення замовлення. Показується під основним описом методу оплати.', 'rozetkapay-payparts' ),
 				'desc_tip'    => false,
 			),
 			'debug_section'         => array(
-				'title'       => __( ' Налаштування відладки', 'rp-payparts' ),
+				'title'       => __( ' Налаштування відладки', 'rozetkapay-payparts' ),
 				'type'        => 'title',
-				'description' => __( 'Додаткова інформація для відладки роботи плагіна.', 'rp-payparts' ),
+				'description' => __( 'Додаткова інформація для відладки роботи плагіна.', 'rozetkapay-payparts' ),
 			),
 			'debug_mode'            => array(
-				'title'       => __( 'Режим відладки', 'rp-payparts' ),
+				'title'       => __( 'Режим відладки', 'rozetkapay-payparts' ),
 				'type'        => 'checkbox',
-				'label'       => __( 'Увімкнути детальне логування в замітки замовлень', 'rp-payparts' ),
-				'description' => __( 'Включіть для діагностики проблем з перенаправленням та API запитами', 'rp-payparts' ),
+				'label'       => __( 'Увімкнути детальне логування в замітки замовлень', 'rozetkapay-payparts' ),
+				'description' => __( 'Включіть для діагностики проблем з перенаправленням та API запитами', 'rozetkapay-payparts' ),
 				'default'     => 'no',
 				'desc_tip'    => true,
 			),
 
 			'auto_confirm'          => array(
-				'title'       => __( 'Автопідтвердження платежу', 'rp-payparts' ),
+				'title'       => __( 'Автопідтвердження платежу', 'rozetkapay-payparts' ),
 				'type'        => 'checkbox',
-				'label'       => __( 'Автоматично підтверджувати оплату після підписання договору клієнтом', 'rp-payparts' ),
+				'label'       => __( 'Автоматично підтверджувати оплату після підписання договору клієнтом', 'rozetkapay-payparts' ),
 				'default'     => 'no',
-				'description' => __( 'Якщо увімкнено, статус у кабінеті RozetkaPay перейде з «Блокування» у «Оплата» без вашого ручного підтвердження.', 'rp-payparts' ),
+				'description' => __( 'Якщо увімкнено, статус у кабінеті RozetkaPay перейде з «Блокування» у «Оплата» без вашого ручного підтвердження.', 'rozetkapay-payparts' ),
 				'desc_tip'    => true,
 			),
 		);
@@ -1127,7 +1127,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		echo '<div class="rp-payparts-container">';
 		echo '<div class="rp-payparts-header">';
 		echo '<span class="rp-payparts-icon"> </span>';
-		echo '<h4>' . esc_html__( 'Оберіть план оплати частинами', 'rp-payparts' ) . '</h4>';
+		echo '<h4>' . esc_html__( 'Оберіть план оплати частинами', 'rozetkapay-payparts' ) . '</h4>';
 		echo '</div>';
 
 		echo '<div class="rp-payparts-options">';
@@ -1221,11 +1221,11 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				'currency'   => get_woocommerce_currency(),
 				'plugin_url' => RP_PAYPARTS_PLUGIN_URL,
 				'messages'   => array(
-					'months'        => __( 'місяців', 'rp-payparts' ),
-					'per_month'     => __( 'грн/міс', 'rp-payparts' ),
-					'select_bank'   => __( 'Оберіть банк', 'rp-payparts' ),
-					'not_available' => __( 'Недоступно', 'rp-payparts' ),
-					'available'     => __( 'Доступно', 'rp-payparts' ),
+					'months'        => __( 'місяців', 'rozetkapay-payparts' ),
+					'per_month'     => __( 'грн/міс', 'rozetkapay-payparts' ),
+					'select_bank'   => __( 'Оберіть банк', 'rozetkapay-payparts' ),
+					'not_available' => __( 'Недоступно', 'rozetkapay-payparts' ),
+					'available'     => __( 'Доступно', 'rozetkapay-payparts' ),
 				),
 			)
 		);
@@ -1243,7 +1243,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			<!-- Вибір банку -->
 			<?php if ( count( $banks_data ) > 1 ) : ?>
 				<div class="rp-bank-selector">
-					<h4><?php esc_html_e( 'Оберіть банк', 'rp-payparts' ); ?></h4>
+					<h4><?php esc_html_e( 'Оберіть банк', 'rozetkapay-payparts' ); ?></h4>
 					<div class="rp-bank-options">
 						<?php foreach ( $banks_data as $bank_slug => $bank_info ) : ?>
 							<label class="rp-bank-option <?php echo $bank_slug === $default_bank ? 'active' : ''; ?>" data-bank="<?php echo esc_attr( $bank_slug ); ?>">
@@ -1283,7 +1283,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			<div class="rp-slider-section">
 				<div class="rp-slider-header">
 					<h4 class="rp-slider-title">
-						<?php esc_html_e( 'Термін розстрочки', 'rp-payparts' ); ?>
+						<?php esc_html_e( 'Термін розстрочки', 'rozetkapay-payparts' ); ?>
 					</h4>
 					<div class="rp-slider-value">
 						<span class="rp-slider-months"><?php echo esc_html( $default_term ); ?></span>
@@ -1331,9 +1331,9 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 					<div>
 						<div class="rp-current-bank-name"><?php echo esc_html( $banks_data[ $default_bank ]['name'] ); ?></div>
 						<div class="rp-bank-features">
-							<span class="rp-bank-feature available"><?php esc_html_e( 'Доступно', 'rp-payparts' ); ?></span>
-							<span class="rp-bank-feature"><?php esc_html_e( 'Без переплат', 'rp-payparts' ); ?></span>
-							<span class="rp-bank-feature"><?php esc_html_e( 'Швидке оформлення', 'rp-payparts' ); ?></span>
+							<span class="rp-bank-feature available"><?php esc_html_e( 'Доступно', 'rozetkapay-payparts' ); ?></span>
+							<span class="rp-bank-feature"><?php esc_html_e( 'Без переплат', 'rozetkapay-payparts' ); ?></span>
+							<span class="rp-bank-feature"><?php esc_html_e( 'Швидке оформлення', 'rozetkapay-payparts' ); ?></span>
 						</div>
 					</div>
 				</div>
@@ -1442,7 +1442,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			rp_build_reference( $order, $this->order_ref_prefix ); }
 
 		if ( ! $order ) {
-			wc_add_notice( __( 'Помилка отримання замовлення.', 'rp-payparts' ), 'error' );
+			wc_add_notice( __( 'Помилка отримання замовлення.', 'rozetkapay-payparts' ), 'error' );
 			return array( 'result' => 'fail' );
 		}
 
@@ -1458,31 +1458,31 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		$selection = get_post_meta( $order_id, '_rp_payparts_option', true );
 
 		if ( ! $selection ) {
-			wc_add_notice( __( 'Будь ласка, оберіть варіант оплати частинами.', 'rp-payparts' ), 'error' );
+			wc_add_notice( __( 'Будь ласка, оберіть варіант оплати частинами.', 'rozetkapay-payparts' ), 'error' );
 			return array( 'result' => 'fail' );
 		}
 
 		if ( ! strpos( $selection, '|' ) ) {
-			wc_add_notice( __( 'Некоректний вибір оплати частинами.', 'rp-payparts' ), 'error' );
+			wc_add_notice( __( 'Некоректний вибір оплати частинами.', 'rozetkapay-payparts' ), 'error' );
 			return array( 'result' => 'fail' );
 		}
 
 		$selection_parts = explode( '|', $selection );
 		if ( count( $selection_parts ) !== 2 ) {
-			wc_add_notice( __( 'Некоректний формат вибору оплати.', 'rp-payparts' ), 'error' );
+			wc_add_notice( __( 'Некоректний формат вибору оплати.', 'rozetkapay-payparts' ), 'error' );
 			return array( 'result' => 'fail' );
 		}
 
 		list( $bank_id, $term ) = $selection_parts;
 
 		if ( empty( $bank_id ) || empty( $term ) || ! is_numeric( $term ) ) {
-			wc_add_notice( __( 'Некоректні дані оплати частинами.', 'rp-payparts' ), 'error' );
+			wc_add_notice( __( 'Некоректні дані оплати частинами.', 'rozetkapay-payparts' ), 'error' );
 			return array( 'result' => 'fail' );
 		}
 
 		$options = $this->get_installment_options();
 		if ( ! isset( $options[ $selection ] ) ) {
-			wc_add_notice( __( 'Вибраний варіант оплати недоступний.', 'rp-payparts' ), 'error' );
+			wc_add_notice( __( 'Вибраний варіант оплати недоступний.', 'rozetkapay-payparts' ), 'error' );
 			return array( 'result' => 'fail' );
 		}
 
@@ -1499,7 +1499,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 		// Тестовий режим
 		if ( $this->test_mode ) {
-			$order->update_status( 'on-hold', __( 'Тестова оплата частинами створена', 'rp-payparts' ) );
+			$order->update_status( 'on-hold', __( 'Тестова оплата частинами створена', 'rozetkapay-payparts' ) );
 
 			update_post_meta( $order_id, '_rp_payparts_bank', $bank_id );
 			update_post_meta( $order_id, '_rp_payparts_term', $term );
@@ -1547,7 +1547,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			$api = $this->get_api_client();
 
 			if ( ! $api ) {
-				throw new Exception( __( 'Помилка ініціалізації API клієнта', 'rp-payparts' ) );
+				throw new Exception( __( 'Помилка ініціалізації API клієнта', 'rozetkapay-payparts' ) );
 			}
 
 			$payment_data = $this->prepare_payment_data( $order, $bank_id, $term );
@@ -1558,11 +1558,11 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			}
 
 			if ( ! is_array( $result ) || ! isset( $result['details'] ) ) {
-				throw new Exception( __( 'Некоректна відповідь від сервера', 'rp-payparts' ) );
+				throw new Exception( __( 'Некоректна відповідь від сервера', 'rozetkapay-payparts' ) );
 			}
 
 			if ( ! isset( $result['details']['status_code'] ) ) {
-				throw new Exception( __( 'Відсутній статус у відповіді сервера', 'rp-payparts' ) );
+				throw new Exception( __( 'Відсутній статус у відповіді сервера', 'rozetkapay-payparts' ) );
 			}
 
 			$status            = $result['details']['status_code'];
@@ -1571,7 +1571,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			if ( ! in_array( $status, $redirect_statuses, true ) ) {
 				$error_message = isset( $result['details']['status_description'] )
 					? $result['details']['status_description']
-					: __( 'Не вдалося створити платіж частинами', 'rp-payparts' );
+					: __( 'Не вдалося створити платіж частинами', 'rozetkapay-payparts' );
 
 				throw new Exception( $error_message );
 			}
@@ -1587,7 +1587,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			update_post_meta( $order->get_id(), '_rp_payparts_bank', $bank_id );
 			update_post_meta( $order->get_id(), '_rp_payparts_term', $term );
 
-			$order->update_status( 'on-hold', __( 'Очікується оплата частинами через RozetkaPay', 'rp-payparts' ) );
+			$order->update_status( 'on-hold', __( 'Очікується оплата частинами через RozetkaPay', 'rozetkapay-payparts' ) );
 
 			WC()->cart->empty_cart();
 
@@ -1645,7 +1645,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			}
 
 			wc_add_notice(
-				sprintf( __( 'Помилка створення платежу: %s', 'rp-payparts' ), $e->getMessage() ),
+				sprintf( __( 'Помилка створення платежу: %s', 'rozetkapay-payparts' ), $e->getMessage() ),
 				'error'
 			);
 
@@ -1696,7 +1696,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		if ( $shipping_total > 0 ) {
 			$total_amount += $shipping_total;
 			$products[]    = array(
-				'name'     => __( 'Доставка', 'rp-payparts' ),
+				'name'     => __( 'Доставка', 'rozetkapay-payparts' ),
 				'quantity' => 1,
 				'price'    => round( $shipping_total, 2 ),
 			);
@@ -1753,7 +1753,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			'parts_count'                => intval( $term ),
 			'amount'                     => $order_total,
 			'description'                => sprintf(
-				__( 'Оплата замовлення №%1$s на %2$s частин', 'rp-payparts' ),
+				__( 'Оплата замовлення №%1$s на %2$s частин', 'rozetkapay-payparts' ),
 				$order->get_order_number(),
 				$term
 			),
@@ -1931,16 +1931,16 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 		if ( $enabled && ! $test_mode ) {
 			if ( empty( $api_user ) ) {
-				$errors[] = __( 'Для продакшн режиму необхідно вказати API користувача (Payparts)', 'rp-payparts' );
+				$errors[] = __( 'Для продакшн режиму необхідно вказати API користувача (Payparts)', 'rozetkapay-payparts' );
 			}
 
 			if ( empty( $api_pass ) ) {
-				$errors[] = __( 'Для продакшн режиму необхідно вказати API пароль (Payparts)', 'rp-payparts' );
+				$errors[] = __( 'Для продакшн режиму необхідно вказати API пароль (Payparts)', 'rozetkapay-payparts' );
 			}
 		}
 
 		if ( $min_amount > 0 && $max_amount > 0 && $min_amount >= $max_amount ) {
-			$errors[] = __( 'Мінімальна сума повинна бути менше максимальної', 'rp-payparts' );
+			$errors[] = __( 'Мінімальна сума повинна бути менше максимальної', 'rozetkapay-payparts' );
 		}
 
 		if ( ! empty( $allowed_banks ) ) {
@@ -1950,7 +1950,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			foreach ( $input_banks as $bank ) {
 				if ( ! empty( $bank ) && ! in_array( $bank, $valid_banks, true ) ) {
 					$errors[] = sprintf(
-						__( 'Невідомий банк: %1$s. Доступні: %2$s', 'rp-payparts' ),
+						__( 'Невідомий банк: %1$s. Доступні: %2$s', 'rozetkapay-payparts' ),
 						$bank,
 						implode( ', ', $valid_banks )
 					);
@@ -1964,7 +1964,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			foreach ( $input_terms as $term ) {
 				if ( ! empty( $term ) && ( ! is_numeric( $term ) || intval( $term ) < 2 || intval( $term ) > 25 ) ) {
 					$errors[] = sprintf(
-						__( 'Некоректний термін: %s. Допустимі: 2-25 місяців', 'rp-payparts' ),
+						__( 'Некоректний термін: %s. Допустимі: 2-25 місяців', 'rozetkapay-payparts' ),
 						$term
 					);
 				}
@@ -2009,7 +2009,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		if ( empty( $this->api_user ) || empty( $this->api_pass ) ) {
 			return array(
 				'success' => false,
-				'message' => __( 'Не вказані API ключі', 'rp-payparts' ),
+				'message' => __( 'Не вказані API ключі', 'rozetkapay-payparts' ),
 			);
 		}
 

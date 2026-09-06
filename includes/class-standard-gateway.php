@@ -30,9 +30,9 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 
 	public function __construct() {
 		$this->id                 = 'rp_standard';
-		$this->method_title       = __( 'RozetkaPay Enhanced', 'rp-payparts' );
-		$this->method_description = __( 'Прийом платежів через RozetkaPay з розширеною діагностикою', 'rp-payparts' );
-		$this->title              = __( 'Банківська картка', 'rp-payparts' );
+		$this->method_title       = __( 'RozetkaPay Enhanced', 'rozetkapay-payparts' );
+		$this->method_description = __( 'Прийом платежів через RozetkaPay з розширеною діагностикою', 'rozetkapay-payparts' );
+		$this->title              = __( 'Банківська картка', 'rozetkapay-payparts' );
 		$this->has_fields         = false;
 		$this->supports           = array( 'products', 'refunds' ); // без 'refunds'
 
@@ -47,7 +47,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 
 		// Основні налаштування
 		$this->enabled     = $this->get_option( 'enabled' );
-		$this->title       = $this->get_option( 'title', __( 'Банківська картка', 'rp-payparts' ) );
+		$this->title       = $this->get_option( 'title', __( 'Банківська картка', 'rozetkapay-payparts' ) );
 		$this->description = $this->get_option( 'description' );
 
 		// Налаштування API
@@ -139,78 +139,78 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 	public function init_form_fields() {
 		$this->form_fields = array(
 			'enabled'               => array(
-				'title'   => __( 'Увімкнути/Вимкнути', 'rp-payparts' ),
+				'title'   => __( 'Увімкнути/Вимкнути', 'rozetkapay-payparts' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Увімкнути RozetkaPay оплату картками', 'rp-payparts' ),
+				'label'   => __( 'Увімкнути RozetkaPay оплату картками', 'rozetkapay-payparts' ),
 				'default' => 'no',
 			),
 			'title'                 => array(
-				'title'       => __( 'Назва методу', 'rp-payparts' ),
+				'title'       => __( 'Назва методу', 'rozetkapay-payparts' ),
 				'type'        => 'text',
-				'description' => __( 'Назва методу оплати, яку бачить користувач під час оформлення замовлення.', 'rp-payparts' ),
-				'default'     => __( 'Банківська картка', 'rp-payparts' ),
+				'description' => __( 'Назва методу оплати, яку бачить користувач під час оформлення замовлення.', 'rozetkapay-payparts' ),
+				'default'     => __( 'Банківська картка', 'rozetkapay-payparts' ),
 				'desc_tip'    => true,
 			),
 			'description'           => array(
-				'title'       => __( 'Опис на сторінці оформлення', 'rp-payparts' ),
+				'title'       => __( 'Опис на сторінці оформлення', 'rozetkapay-payparts' ),
 				'type'        => 'textarea',
-				'description' => __( 'Опис методу оплати, який відображається на сторінці оформлення замовлення.', 'rp-payparts' ),
-				'default'     => __( 'Оплата банківською карткою через захищену сторінку RozetkaPay.', 'rp-payparts' ),
+				'description' => __( 'Опис методу оплати, який відображається на сторінці оформлення замовлення.', 'rozetkapay-payparts' ),
+				'default'     => __( 'Оплата банківською карткою через захищену сторінку RozetkaPay.', 'rozetkapay-payparts' ),
 				'desc_tip'    => true,
 			),
 
 			'enable_status_polling' => array(
-				'title'       => __( 'Включити переопитування статусів', 'rp-payparts' ),
+				'title'       => __( 'Включити переопитування статусів', 'rozetkapay-payparts' ),
 				'type'        => 'checkbox',
-				'label'       => __( 'Опитування Rozetka по payment info кожні 10 хвилин', 'rp-payparts' ),
+				'label'       => __( 'Опитування Rozetka по payment info кожні 10 хвилин', 'rozetkapay-payparts' ),
 				'default'     => 'yes',
 				'desc_tip'    => true,
-				'description' => __( 'Якщо вимкнено, крон-завдання пропускає замовлення цього методу.', 'rp-payparts' ),
+				'description' => __( 'Якщо вимкнено, крон-завдання пропускає замовлення цього методу.', 'rozetkapay-payparts' ),
 			),
 
 			'order_ref_prefix'      => array(
-				'title'       => __( 'Префікс номера для Rozetka', 'rp-payparts' ),
+				'title'       => __( 'Префікс номера для Rozetka', 'rozetkapay-payparts' ),
 				'type'        => 'text',
 				'default'     => 'roz1',
 				'desc_tip'    => true,
-				'description' => __( 'Формат external_id: {prefix}-{номер замовлення}. Залишіть порожнім — лише номер.', 'rp-payparts' ),
+				'description' => __( 'Формат external_id: {prefix}-{номер замовлення}. Залишіть порожнім — лише номер.', 'rozetkapay-payparts' ),
 			),
 			'api_section'           => array(
-				'title'       => __( 'Налаштування API', 'rp-payparts' ),
+				'title'       => __( 'Налаштування API', 'rozetkapay-payparts' ),
 				'type'        => 'title',
-				'description' => __( 'Введіть ваші API ключі від RozetkaPay.', 'rp-payparts' ),
+				'description' => __( 'Введіть ваші API ключі від RozetkaPay.', 'rozetkapay-payparts' ),
 			),
 			'api_user'              => array(
-				'title'       => __( 'API Користувач', 'rp-payparts' ),
+				'title'       => __( 'API Користувач', 'rozetkapay-payparts' ),
 				'type'        => 'text',
-				'description' => __( 'Ваш API логін від RozetkaPay', 'rp-payparts' ),
+				'description' => __( 'Ваш API логін від RozetkaPay', 'rozetkapay-payparts' ),
 				'desc_tip'    => true,
 			),
 			'api_pass'              => array(
-				'title'       => __( 'API Пароль', 'rp-payparts' ),
+				'title'       => __( 'API Пароль', 'rozetkapay-payparts' ),
 				'type'        => 'password',
-				'description' => __( 'Ваш API пароль від RozetkaPay', 'rp-payparts' ),
+				'description' => __( 'Ваш API пароль від RozetkaPay', 'rozetkapay-payparts' ),
 				'desc_tip'    => true,
 			),
 
 			'debug_section'         => array(
-				'title'       => __( 'Налаштування відладки', 'rp-payparts' ),
+				'title'       => __( 'Налаштування відладки', 'rozetkapay-payparts' ),
 				'type'        => 'title',
-				'description' => __( 'Додаткова інформація для відладки роботи плагіна.', 'rp-payparts' ),
+				'description' => __( 'Додаткова інформація для відладки роботи плагіна.', 'rozetkapay-payparts' ),
 			),
 			'debug_mode'            => array(
-				'title'       => __( 'Режим відладки', 'rp-payparts' ),
+				'title'       => __( 'Режим відладки', 'rozetkapay-payparts' ),
 				'type'        => 'checkbox',
-				'label'       => __( 'Увімкнути детальне логування', 'rp-payparts' ),
-				'description' => __( 'Вмикайте для діагностики проблем', 'rp-payparts' ),
+				'label'       => __( 'Увімкнути детальне логування', 'rozetkapay-payparts' ),
+				'description' => __( 'Вмикайте для діагностики проблем', 'rozetkapay-payparts' ),
 				'default'     => 'no',
 				'desc_tip'    => true,
 			),
 			'advanced_logging'      => array(
-				'title'       => __( 'Розширене логування', 'rp-payparts' ),
+				'title'       => __( 'Розширене логування', 'rozetkapay-payparts' ),
 				'type'        => 'checkbox',
-				'label'       => __( 'Створювати детальні лог-файли', 'rp-payparts' ),
-				'description' => __( 'Зберігає детальні логи в окремі файли', 'rp-payparts' ),
+				'label'       => __( 'Створювати детальні лог-файли', 'rozetkapay-payparts' ),
+				'description' => __( 'Зберігає детальні логи в окремі файли', 'rozetkapay-payparts' ),
 				'default'     => 'no',
 				'desc_tip'    => true,
 			),
@@ -302,7 +302,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 
 			error_log( 'RozetkaPay Standard: payment created. ID=' . $payment_id . ' ext=' . $ext_id );
 
-			$order->update_status( 'pending', __( 'Очікується оплата через RozetkaPay.', 'rp-payparts' ) );
+			$order->update_status( 'pending', __( 'Очікується оплата через RozetkaPay.', 'rozetkapay-payparts' ) );
 			$order->save();
 
 			$this->log(
@@ -533,9 +533,9 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			case 'processing':
 				if ( ! $order->is_paid() ) {
 					$order->payment_complete( $payment_id );
-					$note = sprintf( __( 'Платіж успішно завершено через RozetkaPay. ID платежу: %s', 'rp-payparts' ), $payment_id );
+					$note = sprintf( __( 'Платіж успішно завершено через RozetkaPay. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 					if ( ! empty( $receipt_number ) ) {
-						$note .= sprintf( __( ' | Квитанція №: %s', 'rp-payparts' ), $receipt_number );
+						$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 					}
 					$order->add_order_note( $note );
 					error_log( "RozetkaPay: Order #{$order->get_id()} marked as paid - status: {$payment_status}" );
@@ -547,12 +547,12 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			case 'refunding':
 			case 'partially_refunded':
 				if ( $order->get_status() !== 'refunded' ) {
-					$note = sprintf( __( 'Платіж повернено через RozetkaPay. ID платежу: %s', 'rp-payparts' ), $payment_id );
+					$note = sprintf( __( 'Платіж повернено через RozetkaPay. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 					if ( ! empty( $receipt_number ) ) {
-						$note .= sprintf( __( ' | Квитанція №: %s', 'rp-payparts' ), $receipt_number );
+						$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 					}
 					if ( ! empty( $status_code ) ) {
-						$note .= sprintf( __( ' | Код: %s', 'rp-payparts' ), $status_code );
+						$note .= sprintf( __( ' | Код: %s', 'rozetkapay-payparts' ), $status_code );
 					}
 					$order->update_status( 'refunded', $note );
 					error_log( "RozetkaPay: Order #{$order->get_id()} marked as refunded - status: {$payment_status}" );
@@ -564,12 +564,12 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			case 'error':
 			case 'rejected':
 			case 'transaction_rejected':
-				$note = sprintf( __( 'Платіж не вдався в RozetkaPay. ID платежу: %s', 'rp-payparts' ), $payment_id );
+				$note = sprintf( __( 'Платіж не вдався в RozetkaPay. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 				if ( ! empty( $status_code ) ) {
-					$note .= sprintf( __( ' | Код помилки: %s', 'rp-payparts' ), $status_code );
+					$note .= sprintf( __( ' | Код помилки: %s', 'rozetkapay-payparts' ), $status_code );
 				}
 				if ( ! empty( $receipt_number ) ) {
-					$note .= sprintf( __( ' | Квитанція №: %s', 'rp-payparts' ), $receipt_number );
+					$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 				}
 				$order->update_status( 'failed', $note );
 				error_log( "RozetkaPay: Order #{$order->get_id()} marked as failed - status: {$payment_status}, code: {$status_code}" );
@@ -577,9 +577,9 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 
 			case 'cancelled':
 			case 'canceled':
-				$note = sprintf( __( 'Платіж скасовано в RozetkaPay. ID платежу: %s', 'rp-payparts' ), $payment_id );
+				$note = sprintf( __( 'Платіж скасовано в RozetkaPay. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 				if ( ! empty( $receipt_number ) ) {
-					$note .= sprintf( __( ' | Квитанція №: %s', 'rp-payparts' ), $receipt_number );
+					$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 				}
 				$order->update_status( 'cancelled', $note );
 				error_log( "RozetkaPay: Order #{$order->get_id()} marked as cancelled" );
@@ -588,9 +588,9 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			case 'pending':
 			case 'init':
 				if ( $order->get_status() !== 'processing' && $order->get_status() !== 'completed' ) {
-					$note = sprintf( __( 'Платіж в обробці в RozetkaPay. ID платежу: %s', 'rp-payparts' ), $payment_id );
+					$note = sprintf( __( 'Платіж в обробці в RozetkaPay. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 					if ( ! empty( $receipt_number ) ) {
-						$note .= sprintf( __( ' | Квитанція №: %s', 'rp-payparts' ), $receipt_number );
+						$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 					}
 					$order->update_status( 'on-hold', $note );
 					error_log( "RozetkaPay: Order #{$order->get_id()} marked as on-hold - pending payment" );
@@ -602,9 +602,9 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 
 				// Якщо статус невідомий, але is_success = false
 				if ( $is_success === false ) {
-					$note = sprintf( __( 'Платіж не вдався в RozetkaPay (is_success=false). ID платежу: %s', 'rp-payparts' ), $payment_id );
+					$note = sprintf( __( 'Платіж не вдався в RozetkaPay (is_success=false). ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 					if ( ! empty( $status_code ) ) {
-						$note .= sprintf( __( ' | Код помилки: %s', 'rp-payparts' ), $status_code );
+						$note .= sprintf( __( ' | Код помилки: %s', 'rozetkapay-payparts' ), $status_code );
 					}
 					$order->update_status( 'failed', $note );
 					error_log( "RozetkaPay: Order #{$order->get_id()} marked as failed based on is_success=false" );
@@ -612,18 +612,18 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 					// Якщо is_success = true, позначаємо як оплачений
 					if ( ! $order->is_paid() ) {
 						$order->payment_complete( $payment_id );
-						$note = sprintf( __( 'Платіж успішний за is_success=true. ID платежу: %s', 'rp-payparts' ), $payment_id );
+						$note = sprintf( __( 'Платіж успішний за is_success=true. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 						if ( ! empty( $status_code ) ) {
-							$note .= sprintf( __( ' | Код: %s', 'rp-payparts' ), $status_code );
+							$note .= sprintf( __( ' | Код: %s', 'rozetkapay-payparts' ), $status_code );
 						}
 						$order->add_order_note( $note );
 						error_log( "RozetkaPay: Order #{$order->get_id()} marked as paid based on is_success=true" );
 					}
 				} else {
 					// Додаємо примітку з невідомим статусом
-					$note = sprintf( __( 'Отримано невідомий статус платежу: %1$s | ID: %2$s', 'rp-payparts' ), $payment_status, $payment_id );
+					$note = sprintf( __( 'Отримано невідомий статус платежу: %1$s | ID: %2$s', 'rozetkapay-payparts' ), $payment_status, $payment_id );
 					if ( ! empty( $status_code ) ) {
-						$note .= sprintf( __( ' | Код: %s', 'rp-payparts' ), $status_code );
+						$note .= sprintf( __( ' | Код: %s', 'rozetkapay-payparts' ), $status_code );
 					}
 					$order->add_order_note( $note );
 					error_log( "RozetkaPay: Added note for unknown status: {$payment_status}" );
@@ -749,7 +749,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 		if ( $shipping_net + $shipping_tax > 0 ) {
 			$entry = array(
 				'id'         => 'shipping',
-				'name'       => __( 'Доставка', 'rp-payparts' ),
+				'name'       => __( 'Доставка', 'rozetkapay-payparts' ),
 				'quantity'   => '1',
 				'net_amount' => round( $shipping_net, 2 ),
 			);

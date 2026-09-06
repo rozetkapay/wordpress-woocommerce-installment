@@ -35,8 +35,8 @@ class RP_Payparts_Admin {
 	public function add_admin_menu() {
 		add_submenu_page(
 			'woocommerce',
-			__( 'RozetkaPay Оплата частинами', 'rp-payparts' ),
-			__( 'RozetkaPay Частинами', 'rp-payparts' ),
+			__( 'RozetkaPay Оплата частинами', 'rozetkapay-payparts' ),
+			__( 'RozetkaPay Частинами', 'rozetkapay-payparts' ),
 			'manage_woocommerce',
 			'rp-payparts',
 			array( $this, 'admin_page' )
@@ -50,20 +50,20 @@ class RP_Payparts_Admin {
 		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'overview';
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'RozetkaPay Оплата частинами', 'rp-payparts' ); ?></h1>
+			<h1><?php esc_html_e( 'RozetkaPay Оплата частинами', 'rozetkapay-payparts' ); ?></h1>
 
 			<nav class="nav-tab-wrapper">
 				<a href="?page=rp-payparts&tab=overview"
 					class="nav-tab <?php echo $active_tab === 'overview' ? 'nav-tab-active' : ''; ?>">
-					<?php esc_html_e( 'Огляд', 'rp-payparts' ); ?>
+					<?php esc_html_e( 'Огляд', 'rozetkapay-payparts' ); ?>
 				</a>
 				<a href="?page=rp-payparts&tab=orders"
 					class="nav-tab <?php echo $active_tab === 'orders' ? 'nav-tab-active' : ''; ?>">
-					<?php esc_html_e( 'Замовлення', 'rp-payparts' ); ?>
+					<?php esc_html_e( 'Замовлення', 'rozetkapay-payparts' ); ?>
 				</a>
 				<a href="?page=rp-payparts&tab=settings"
 					class="nav-tab <?php echo $active_tab === 'settings' ? 'nav-tab-active' : ''; ?>">
-					<?php esc_html_e( 'Налаштування', 'rp-payparts' ); ?>
+					<?php esc_html_e( 'Налаштування', 'rozetkapay-payparts' ); ?>
 				</a>
 			</nav>
 
@@ -96,7 +96,7 @@ class RP_Payparts_Admin {
 		<div class="rp-admin-overview">
 			<div class="rp-stats-grid">
 				<div class="rp-stat-card">
-					<h3><?php esc_html_e( 'Всього платежів', 'rp-payparts' ); ?></h3>
+					<h3><?php esc_html_e( 'Всього платежів', 'rozetkapay-payparts' ); ?></h3>
 					<div class="rp-stat-number"><?php echo esc_html( $stats['total_payments'] ); ?></div>
 					<div class="rp-stat-breakdown">
 						<?php echo esc_html( $stats['payparts_payments'] ); ?> частинами |
@@ -105,7 +105,7 @@ class RP_Payparts_Admin {
 				</div>
 
 				<div class="rp-stat-card">
-					<h3><?php esc_html_e( 'Успішних платежів', 'rp-payparts' ); ?></h3>
+					<h3><?php esc_html_e( 'Успішних платежів', 'rozetkapay-payparts' ); ?></h3>
 					<div class="rp-stat-number"><?php echo esc_html( $stats['successful_payments'] ); ?></div>
 					<div class="rp-stat-breakdown">
 						<?php echo esc_html( $stats['successful_payparts'] ); ?> частинами |
@@ -114,7 +114,7 @@ class RP_Payparts_Admin {
 				</div>
 
 				<div class="rp-stat-card">
-					<h3><?php esc_html_e( 'Загальна сума', 'rp-payparts' ); ?></h3>
+					<h3><?php esc_html_e( 'Загальна сума', 'rozetkapay-payparts' ); ?></h3>
 					<div class="rp-stat-number"><?php echo wp_kses_post( wc_price( $stats['total_amount'] ) ); ?></div>
 					<div class="rp-stat-breakdown">
 						<?php echo wp_kses_post( wc_price( $stats['payparts_amount'] ) ); ?> частинами<br>
@@ -123,7 +123,7 @@ class RP_Payparts_Admin {
 				</div>
 
 				<div class="rp-stat-card">
-					<h3><?php esc_html_e( 'Очікують оплати', 'rp-payparts' ); ?></h3>
+					<h3><?php esc_html_e( 'Очікують оплати', 'rozetkapay-payparts' ); ?></h3>
 					<div class="rp-stat-number"><?php echo esc_html( $stats['pending_payments'] ); ?></div>
 					<div class="rp-stat-breakdown">
 						<?php echo esc_html( $stats['pending_payparts'] ); ?> частинами |
@@ -134,22 +134,22 @@ class RP_Payparts_Admin {
 
 			<!-- Статус методів оплати -->
 			<div class="rp-payment-methods-status">
-				<h3><?php esc_html_e( 'Статус методів оплати', 'rp-payparts' ); ?></h3>
+				<h3><?php esc_html_e( 'Статус методів оплати', 'rozetkapay-payparts' ); ?></h3>
 
 				<div class="rp-methods-grid">
 					<!-- RozetkaPay Payparts -->
 					<div class="rp-method-card <?php echo $payparts_gateway && 'yes' === $payparts_gateway->enabled ? 'rp-status-active' : 'rp-status-inactive'; ?>">
 						<h4>💳 RozetkaPay Оплата частинами</h4>
 						<?php if ( $payparts_gateway && 'yes' === $payparts_gateway->enabled ) : ?>
-							<p>✅ <?php esc_html_e( 'Активний і працює', 'rp-payparts' ); ?></p>
-							<p><strong><?php esc_html_e( 'Режим:', 'rp-payparts' ); ?></strong>
-								<?php echo $payparts_gateway->test_mode ? esc_html__( 'Продакшн', 'rp-payparts' ) : esc_html__( 'Продакшн', 'rp-payparts' ); ?>
+							<p>✅ <?php esc_html_e( 'Активний і працює', 'rozetkapay-payparts' ); ?></p>
+							<p><strong><?php esc_html_e( 'Режим:', 'rozetkapay-payparts' ); ?></strong>
+								<?php echo $payparts_gateway->test_mode ? esc_html__( 'Продакшн', 'rozetkapay-payparts' ) : esc_html__( 'Продакшн', 'rozetkapay-payparts' ); ?>
 							</p>
 						<?php else : ?>
-							<p>⚠️ <?php esc_html_e( 'Неактивний', 'rp-payparts' ); ?></p>
+							<p>⚠️ <?php esc_html_e( 'Неактивний', 'rozetkapay-payparts' ); ?></p>
 							<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_payparts' ) ); ?>"
 								class="button button-primary">
-								<?php esc_html_e( 'Активувати', 'rp-payparts' ); ?>
+								<?php esc_html_e( 'Активувати', 'rozetkapay-payparts' ); ?>
 							</a>
 						<?php endif; ?>
 					</div>
@@ -158,18 +158,18 @@ class RP_Payparts_Admin {
 					<div class="rp-method-card <?php echo $standard_gateway && 'yes' === $standard_gateway->enabled ? 'rp-status-active' : 'rp-status-inactive'; ?>">
 						<h4>🏦 RozetkaPay Банківські картки</h4>
 						<?php if ( $standard_gateway && 'yes' === $standard_gateway->enabled ) : ?>
-							<p>✅ <?php esc_html_e( 'Активний і працює', 'rp-payparts' ); ?></p>
-							<p><strong><?php esc_html_e( 'Режим:', 'rp-payparts' ); ?></strong>
-								<?php echo $standard_gateway->test_mode ? esc_html__( 'Продакшн', 'rp-payparts' ) : esc_html__( 'Продакшн', 'rp-payparts' ); ?>
+							<p>✅ <?php esc_html_e( 'Активний і працює', 'rozetkapay-payparts' ); ?></p>
+							<p><strong><?php esc_html_e( 'Режим:', 'rozetkapay-payparts' ); ?></strong>
+								<?php echo $standard_gateway->test_mode ? esc_html__( 'Продакшн', 'rozetkapay-payparts' ) : esc_html__( 'Продакшн', 'rozetkapay-payparts' ); ?>
 							</p>
-							<p><strong><?php esc_html_e( 'Тип:', 'rp-payparts' ); ?></strong>
-								<?php echo isset( $standard_gateway->two_step_payment ) && $standard_gateway->two_step_payment ? esc_html__( 'Двоетапна оплата', 'rp-payparts' ) : esc_html__( 'Одноетапна оплата', 'rp-payparts' ); ?>
+							<p><strong><?php esc_html_e( 'Тип:', 'rozetkapay-payparts' ); ?></strong>
+								<?php echo isset( $standard_gateway->two_step_payment ) && $standard_gateway->two_step_payment ? esc_html__( 'Двоетапна оплата', 'rozetkapay-payparts' ) : esc_html__( 'Одноетапна оплата', 'rozetkapay-payparts' ); ?>
 							</p>
 						<?php else : ?>
-							<p>⚠️ <?php esc_html_e( 'Неактивний', 'rp-payparts' ); ?></p>
+							<p>⚠️ <?php esc_html_e( 'Неактивний', 'rozetkapay-payparts' ); ?></p>
 							<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_standard' ) ); ?>"
 								class="button button-primary">
-								<?php esc_html_e( 'Активувати', 'rp-payparts' ); ?>
+								<?php esc_html_e( 'Активувати', 'rozetkapay-payparts' ); ?>
 							</a>
 						<?php endif; ?>
 					</div>
@@ -177,24 +177,24 @@ class RP_Payparts_Admin {
 			</div>
 
 			<div class="rp-quick-actions">
-				<h3><?php esc_html_e( 'Швидкі дії', 'rp-payparts' ); ?></h3>
+				<h3><?php esc_html_e( 'Швидкі дії', 'rozetkapay-payparts' ); ?></h3>
 				<div class="rp-actions-grid">
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_payparts' ) ); ?>"
 						class="button">
-						<?php esc_html_e( 'Налаштування частинами', 'rp-payparts' ); ?>
+						<?php esc_html_e( 'Налаштування частинами', 'rozetkapay-payparts' ); ?>
 					</a>
 
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_standard' ) ); ?>"
 						class="button">
-						<?php esc_html_e( 'Налаштування картками', 'rp-payparts' ); ?>
+						<?php esc_html_e( 'Налаштування картками', 'rozetkapay-payparts' ); ?>
 					</a>
 
 					<button type="button" class="button" id="rp-test-connection" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rp_admin_nonce' ) ); ?>">
-						<?php esc_html_e( 'Тест підключення API', 'rp-payparts' ); ?>
+						<?php esc_html_e( 'Тест підключення API', 'rozetkapay-payparts' ); ?>
 					</button>
 
 					<button type="button" class="button" id="rp-clear-cache" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rp_admin_nonce' ) ); ?>">
-						<?php esc_html_e( 'Очистити кеш', 'rp-payparts' ); ?>
+						<?php esc_html_e( 'Очистити кеш', 'rozetkapay-payparts' ); ?>
 					</button>
 				</div>
 
@@ -212,21 +212,21 @@ class RP_Payparts_Admin {
 		$orders = $this->get_payparts_orders();
 		?>
 		<div class="rp-orders-tab">
-			<h3><?php esc_html_e( 'Замовлення з оплатою частинами', 'rp-payparts' ); ?></h3>
+			<h3><?php esc_html_e( 'Замовлення з оплатою частинами', 'rozetkapay-payparts' ); ?></h3>
 
 			<?php if ( empty( $orders ) ) : ?>
-				<p><?php esc_html_e( 'Замовлень з оплатою частинами поки немає.', 'rp-payparts' ); ?></p>
+				<p><?php esc_html_e( 'Замовлень з оплатою частинами поки немає.', 'rozetkapay-payparts' ); ?></p>
 			<?php else : ?>
 				<table class="wp-list-table widefat fixed striped">
 					<thead>
 						<tr>
-							<th><?php esc_html_e( 'Замовлення', 'rp-payparts' ); ?></th>
-							<th><?php esc_html_e( 'Клієнт', 'rp-payparts' ); ?></th>
-							<th><?php esc_html_e( 'Сума', 'rp-payparts' ); ?></th>
-							<th><?php esc_html_e( 'Банк', 'rp-payparts' ); ?></th>
-							<th><?php esc_html_e( 'Термін', 'rp-payparts' ); ?></th>
-							<th><?php esc_html_e( 'Статус', 'rp-payparts' ); ?></th>
-							<th><?php esc_html_e( 'Дата', 'rp-payparts' ); ?></th>
+							<th><?php esc_html_e( 'Замовлення', 'rozetkapay-payparts' ); ?></th>
+							<th><?php esc_html_e( 'Клієнт', 'rozetkapay-payparts' ); ?></th>
+							<th><?php esc_html_e( 'Сума', 'rozetkapay-payparts' ); ?></th>
+							<th><?php esc_html_e( 'Банк', 'rozetkapay-payparts' ); ?></th>
+							<th><?php esc_html_e( 'Термін', 'rozetkapay-payparts' ); ?></th>
+							<th><?php esc_html_e( 'Статус', 'rozetkapay-payparts' ); ?></th>
+							<th><?php esc_html_e( 'Дата', 'rozetkapay-payparts' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -263,9 +263,9 @@ class RP_Payparts_Admin {
 	private function render_settings_tab() {
 		?>
 		<div class="rp-settings-tab">
-			<p><?php esc_html_e( 'Налаштування плагіна доступні в', 'rp-payparts' ); ?>
+			<p><?php esc_html_e( 'Налаштування плагіна доступні в', 'rozetkapay-payparts' ); ?>
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_payparts' ) ); ?>">
-					<?php esc_html_e( 'налаштуваннях WooCommerce', 'rp-payparts' ); ?>
+					<?php esc_html_e( 'налаштуваннях WooCommerce', 'rozetkapay-payparts' ); ?>
 				</a>
 			</p>
 		</div>
@@ -368,16 +368,16 @@ class RP_Payparts_Admin {
 	public function ajax_test_connection() {
 		// Перевірка nonce
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'rp_admin_nonce' ) ) {
-			wp_send_json_error( __( 'Помилка безпеки', 'rp-payparts' ) );
+			wp_send_json_error( __( 'Помилка безпеки', 'rozetkapay-payparts' ) );
 		}
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( __( 'Недостатньо прав доступу', 'rp-payparts' ) );
+			wp_send_json_error( __( 'Недостатньо прав доступу', 'rozetkapay-payparts' ) );
 		}
 
 		$gateway = rp_payparts_get_gateway();
 		if ( ! $gateway ) {
-			wp_send_json_error( __( 'Шлюз не знайдено', 'rp-payparts' ) );
+			wp_send_json_error( __( 'Шлюз не знайдено', 'rozetkapay-payparts' ) );
 		}
 
 		// Створюємо API-клієнт
@@ -408,11 +408,11 @@ class RP_Payparts_Admin {
 	public function ajax_clear_cache() {
 		// Перевірка nonce
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'rp_admin_nonce' ) ) {
-			wp_send_json_error( __( 'Помилка безпеки', 'rp-payparts' ) );
+			wp_send_json_error( __( 'Помилка безпеки', 'rozetkapay-payparts' ) );
 		}
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( __( 'Недостатньо прав доступу', 'rp-payparts' ) );
+			wp_send_json_error( __( 'Недостатньо прав доступу', 'rozetkapay-payparts' ) );
 		}
 
 		// Очищаємо всі transients плагіна
@@ -425,14 +425,14 @@ class RP_Payparts_Admin {
 		// Очищаємо кеш об'єктів WordPress
 		wp_cache_flush();
 
-		wp_send_json_success( __( 'Кеш успішно очищено', 'rp-payparts' ) );
+		wp_send_json_success( __( 'Кеш успішно очищено', 'rozetkapay-payparts' ) );
 	}
 
 	/**
 	 * Посилання дій плагіна на сторінці плагінів
 	 */
 	public function plugin_action_links( $links ) {
-		$settings_link = '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_payparts' ) ) . '">' . __( 'Налаштування', 'rp-payparts' ) . '</a>';
+		$settings_link = '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_payparts' ) ) . '">' . __( 'Налаштування', 'rozetkapay-payparts' ) . '</a>';
 		array_unshift( $links, $settings_link );
 		return $links;
 	}
@@ -454,27 +454,27 @@ class RP_Payparts_Admin {
 
 		?>
 		<div class="rp-order-payment-info">
-			<h4><?php esc_html_e( 'Інформація про оплату частинами', 'rp-payparts' ); ?></h4>
+			<h4><?php esc_html_e( 'Інформація про оплату частинами', 'rozetkapay-payparts' ); ?></h4>
 
 			<?php if ( $installment_info ) : ?>
-				<p><strong><?php esc_html_e( 'Банк:', 'rp-payparts' ); ?></strong> <?php echo esc_html( $installment_info['bank_name'] ); ?></p>
-				<p><strong><?php esc_html_e( 'Термін:', 'rp-payparts' ); ?></strong> <?php echo esc_html( $installment_info['term_text'] ); ?></p>
-				<p><strong><?php esc_html_e( 'Щомісячний платіж:', 'rp-payparts' ); ?></strong> <?php echo esc_html( $installment_info['monthly_payment_formatted'] ); ?></p>
+				<p><strong><?php esc_html_e( 'Банк:', 'rozetkapay-payparts' ); ?></strong> <?php echo esc_html( $installment_info['bank_name'] ); ?></p>
+				<p><strong><?php esc_html_e( 'Термін:', 'rozetkapay-payparts' ); ?></strong> <?php echo esc_html( $installment_info['term_text'] ); ?></p>
+				<p><strong><?php esc_html_e( 'Щомісячний платіж:', 'rozetkapay-payparts' ); ?></strong> <?php echo esc_html( $installment_info['monthly_payment_formatted'] ); ?></p>
 			<?php endif; ?>
 
 			<?php if ( $payment_data['payment_id'] ) : ?>
-				<p><strong><?php esc_html_e( 'ID операції:', 'rp-payparts' ); ?></strong> <code><?php echo esc_html( $payment_data['payment_id'] ); ?></code></p>
+				<p><strong><?php esc_html_e( 'ID операції:', 'rozetkapay-payparts' ); ?></strong> <code><?php echo esc_html( $payment_data['payment_id'] ); ?></code></p>
 			<?php endif; ?>
 
 			<?php if ( $payment_data['transaction_id'] ) : ?>
-				<p><strong><?php esc_html_e( 'ID транзакції:', 'rp-payparts' ); ?></strong> <code><?php echo esc_html( $payment_data['transaction_id'] ); ?></code></p>
+				<p><strong><?php esc_html_e( 'ID транзакції:', 'rozetkapay-payparts' ); ?></strong> <code><?php echo esc_html( $payment_data['transaction_id'] ); ?></code></p>
 			<?php endif; ?>
 
 			<?php if ( $payment_data['payment_url'] && $order->has_status( 'on-hold' ) ) : ?>
 				<p>
-					<strong><?php esc_html_e( 'Посилання для оплати:', 'rp-payparts' ); ?></strong><br>
+					<strong><?php esc_html_e( 'Посилання для оплати:', 'rozetkapay-payparts' ); ?></strong><br>
 					<a href="<?php echo esc_url( $payment_data['payment_url'] ); ?>" target="_blank" class="button button-small">
-						<?php esc_html_e( 'Відкрити сторінку оплати', 'rp-payparts' ); ?>
+						<?php esc_html_e( 'Відкрити сторінку оплати', 'rozetkapay-payparts' ); ?>
 					</a>
 				</p>
 			<?php endif; ?>
@@ -494,7 +494,7 @@ class RP_Payparts_Admin {
 					<?php
 					printf(
 						/* translators: %s: Plugin name */
-						esc_html__( '%s потребує активного WooCommerce для роботи.', 'rp-payparts' ),
+						esc_html__( '%s потребує активного WooCommerce для роботи.', 'rozetkapay-payparts' ),
 						'<strong>RozetkaPay Payparts</strong>'
 					);
 					?>
@@ -510,9 +510,9 @@ class RP_Payparts_Admin {
 			?>
 			<div class="notice notice-warning is-dismissible">
 				<p>
-					<?php esc_html_e( 'RozetkaPay Payparts: Будь ласка, налаштуйте API ключі для роботи плагіна.', 'rp-payparts' ); ?>
+					<?php esc_html_e( 'RozetkaPay Payparts: Будь ласка, налаштуйте API ключі для роботи плагіна.', 'rozetkapay-payparts' ); ?>
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_payparts' ) ); ?>">
-						<?php esc_html_e( 'Налаштувати зараз', 'rp-payparts' ); ?>
+						<?php esc_html_e( 'Налаштувати зараз', 'rozetkapay-payparts' ); ?>
 					</a>
 				</p>
 			</div>

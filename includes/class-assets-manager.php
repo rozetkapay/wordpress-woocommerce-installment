@@ -83,9 +83,9 @@ class RP_Payparts_Assets_Manager {
 					'assetsUrl'      => RP_PAYPARTS_PLUGIN_URL . 'assets/',
 					'enableAdvanced' => false, // Увімкнути розширені функції
 					'strings'        => array(
-						'selectOption' => __( 'Будь ласка, оберіть варіант оплати', 'rp-payparts' ),
-						'calculating'  => __( 'Розраховуємо...', 'rp-payparts' ),
-						'error'        => __( 'Виникла помилка', 'rp-payparts' ),
+						'selectOption' => __( 'Будь ласка, оберіть варіант оплати', 'rozetkapay-payparts' ),
+						'calculating'  => __( 'Розраховуємо...', 'rozetkapay-payparts' ),
+						'error'        => __( 'Виникла помилка', 'rozetkapay-payparts' ),
 					),
 				)
 			);
@@ -124,18 +124,18 @@ class RP_Payparts_Assets_Manager {
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'rp_admin_nonce' ),
 				'strings' => array(
-					'confirmDelete'   => __( 'Ви впевнені?', 'rp-payparts' ),
-					'saved'           => __( 'Збережено', 'rp-payparts' ),
-					'error'           => __( 'Помилка', 'rp-payparts' ),
-					'testing'         => __( 'Тестування...', 'rp-payparts' ),
-					'testApi'         => __( 'Тест підключення API', 'rp-payparts' ),
-					'testingApi'      => __( 'Тестуємо підключення до API...', 'rp-payparts' ),
-					'connectionError' => __( 'Помилка підключення', 'rp-payparts' ),
-					'banksFound'      => __( 'Знайдено банків:', 'rp-payparts' ),
-					'clearing'        => __( 'Очищаємо...', 'rp-payparts' ),
-					'clearingCache'   => __( 'Очищаємо кеш...', 'rp-payparts' ),
-					'clearCache'      => __( 'Очистити кеш', 'rp-payparts' ),
-					'cacheClearError' => __( 'Помилка очищення кешу', 'rp-payparts' ),
+					'confirmDelete'   => __( 'Ви впевнені?', 'rozetkapay-payparts' ),
+					'saved'           => __( 'Збережено', 'rozetkapay-payparts' ),
+					'error'           => __( 'Помилка', 'rozetkapay-payparts' ),
+					'testing'         => __( 'Тестування...', 'rozetkapay-payparts' ),
+					'testApi'         => __( 'Тест підключення API', 'rozetkapay-payparts' ),
+					'testingApi'      => __( 'Тестуємо підключення до API...', 'rozetkapay-payparts' ),
+					'connectionError' => __( 'Помилка підключення', 'rozetkapay-payparts' ),
+					'banksFound'      => __( 'Знайдено банків:', 'rozetkapay-payparts' ),
+					'clearing'        => __( 'Очищаємо...', 'rozetkapay-payparts' ),
+					'clearingCache'   => __( 'Очищаємо кеш...', 'rozetkapay-payparts' ),
+					'clearCache'      => __( 'Очистити кеш', 'rozetkapay-payparts' ),
+					'cacheClearError' => __( 'Помилка очищення кешу', 'rozetkapay-payparts' ),
 				),
 			)
 		);
@@ -445,7 +445,7 @@ jQuery(document).ready(function($) {
 					echo '<div class="notice notice-warning is-dismissible">';
 					echo '<p><strong>RozetkaPay Payparts:</strong> ';
 					printf(
-						esc_html__( 'Відсутні критичні файли: %s', 'rp-payparts' ),
+						esc_html__( 'Відсутні критичні файли: %s', 'rozetkapay-payparts' ),
 						esc_html( implode( ', ', $missing_files ) )
 					);
 					echo '</p></div>';

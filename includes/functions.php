@@ -18,9 +18,9 @@ if ( ! function_exists( 'rp_payparts_get_month_declension' ) ) {
 	function rp_payparts_get_month_declension( $number ) {
 		$cases  = array( 2, 0, 1, 1, 1, 2 );
 		$titles = array(
-			__( 'місяць', 'rp-payparts' ),
-			__( 'місяці', 'rp-payparts' ),
-			__( 'місяців', 'rp-payparts' ),
+			__( 'місяць', 'rozetkapay-payparts' ),
+			__( 'місяці', 'rozetkapay-payparts' ),
+			__( 'місяців', 'rozetkapay-payparts' ),
 		);
 
 		return $titles[ ( $number % 100 > 4 && $number % 100 < 20 ) ? 2 : $cases[ min( $number % 10, 5 ) ] ];
@@ -195,11 +195,11 @@ if ( ! function_exists( 'rp_get_payment_method_title' ) ) {
 	function rp_get_payment_method_title( $method ) {
 		switch ( $method ) {
 			case 'payparts':
-				return __( 'RozetkaPay Оплата частинами', 'rp-payparts' );
+				return __( 'RozetkaPay Оплата частинами', 'rozetkapay-payparts' );
 			case 'standard':
-				return __( 'RozetkaPay Банківські картки', 'rp-payparts' );
+				return __( 'RozetkaPay Банківські картки', 'rozetkapay-payparts' );
 			default:
-				return __( 'RozetkaPay', 'rp-payparts' );
+				return __( 'RozetkaPay', 'rozetkapay-payparts' );
 		}
 	}
 }
@@ -396,7 +396,7 @@ if ( ! function_exists( 'rp_payparts_validate_amount' ) ) {
 		if ( ! $gateway ) {
 			return array(
 				'valid'   => false,
-				'message' => __( 'Метод оплати недоступний', 'rp-payparts' ),
+				'message' => __( 'Метод оплати недоступний', 'rozetkapay-payparts' ),
 			);
 		}
 
@@ -408,7 +408,7 @@ if ( ! function_exists( 'rp_payparts_validate_amount' ) ) {
 			return array(
 				'valid'   => false,
 				'message' => sprintf(
-					__( 'Мінімальна сума для розстрочки: %s', 'rp-payparts' ),
+					__( 'Мінімальна сума для розстрочки: %s', 'rozetkapay-payparts' ),
 					rp_payparts_format_currency( $limits['min_amount'] )
 				),
 			);
@@ -419,7 +419,7 @@ if ( ! function_exists( 'rp_payparts_validate_amount' ) ) {
 			return array(
 				'valid'   => false,
 				'message' => sprintf(
-					__( 'Максимальна сума для розстрочки: %s', 'rp-payparts' ),
+					__( 'Максимальна сума для розстрочки: %s', 'rozetkapay-payparts' ),
 					rp_payparts_format_currency( $limits['max_amount'] )
 				),
 			);
@@ -427,7 +427,7 @@ if ( ! function_exists( 'rp_payparts_validate_amount' ) ) {
 
 		return array(
 			'valid'   => true,
-			'message' => __( 'Сума підходить для розстрочки', 'rp-payparts' ),
+			'message' => __( 'Сума підходить для розстрочки', 'rozetkapay-payparts' ),
 		);
 	}
 }
@@ -576,7 +576,7 @@ if ( ! function_exists( 'rp_payparts_get_plugin_data' ) ) {
 		return array(
 			'Name'        => 'RozetkaPay Payparts',
 			'Version'     => rp_payparts_get_plugin_version(),
-			'Description' => __( 'Оплата частинами через RozetkaPay', 'rp-payparts' ),
+			'Description' => __( 'Оплата частинами через RozetkaPay', 'rozetkapay-payparts' ),
 			'Author'      => 'RozetkaPay',
 		);
 	}
@@ -612,7 +612,7 @@ if ( ! function_exists( 'rp_payparts_widget_shortcode' ) ) {
 		}
 
 		if ( $price <= 0 ) {
-			return '<p>' . esc_html__( 'Вкажіть ціну для розрахунку розстрочки', 'rp-payparts' ) . '</p>';
+			return '<p>' . esc_html__( 'Вкажіть ціну для розрахунку розстрочки', 'rozetkapay-payparts' ) . '</p>';
 		}
 
 		$gateway = rp_payparts_get_gateway();
@@ -658,13 +658,13 @@ if ( ! function_exists( 'rp_payparts_widget_shortcode' ) ) {
 			
 			<div class="rozetkapay-widget-content">
 				<div class="rozetkapay-widget-title">
-					<?php esc_html_e( 'Розстрочка без переплат', 'rp-payparts' ); ?>
+					<?php esc_html_e( 'Розстрочка без переплат', 'rozetkapay-payparts' ); ?>
 				</div>
 				
 				<div class="rozetkapay-widget-best">
-					<?php esc_html_e( 'від', 'rp-payparts' ); ?>
+					<?php esc_html_e( 'від', 'rozetkapay-payparts' ); ?>
 					<strong><?php echo esc_html( rp_payparts_format_currency( $min_payment ) ); ?></strong>
-					<?php esc_html_e( 'на місяць', 'rp-payparts' ); ?>
+					<?php esc_html_e( 'на місяць', 'rozetkapay-payparts' ); ?>
 				</div>
 			</div>
 		</div>

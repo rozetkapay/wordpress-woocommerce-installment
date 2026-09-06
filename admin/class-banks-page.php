@@ -14,8 +14,8 @@ class RP_Payparts_Banks_Page {
 	public static function add_menu() {
 		add_submenu_page(
 			'woocommerce',
-			__( 'RozetkaPay: Доступні банки', 'rp-payparts' ),
-			__( 'RozetkaPay: Доступні банки', 'rp-payparts' ),
+			__( 'RozetkaPay: Доступні банки', 'rozetkapay-payparts' ),
+			__( 'RozetkaPay: Доступні банки', 'rozetkapay-payparts' ),
 			'manage_woocommerce',
 			'rp-payparts-banks',
 			array( __CLASS__, 'render_page' )
@@ -123,7 +123,7 @@ class RP_Payparts_Banks_Page {
 
 	public static function render_page() {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_die( esc_html__( 'Access denied', 'rp-payparts' ) ); }
+			wp_die( esc_html__( 'Access denied', 'rozetkapay-payparts' ) ); }
 
 		$settings = self::get_settings();
 		$login    = $settings['api_user'] ?? '';
@@ -144,7 +144,7 @@ class RP_Payparts_Banks_Page {
 				$banks = self::filter_banks( $resp, $amount, $term );
 			}
 		} else {
-			$error = array( 'error' => __( 'Вкажіть логін і пароль API в налаштуваннях способу оплати PayParts.', 'rp-payparts' ) );
+			$error = array( 'error' => __( 'Вкажіть логін і пароль API в налаштуваннях способу оплати PayParts.', 'rozetkapay-payparts' ) );
 		}
 
 		?>
