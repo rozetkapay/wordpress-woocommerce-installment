@@ -893,7 +893,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 		error_log( 'RozetkaPay: ' . $formatted_message );
 
 		if ( $this->advanced_logging ) {
-			$log_file = WP_CONTENT_DIR . '/uploads/rozetkapay-logs/rozetkapay-' . date( 'Y-m-d' ) . '.log';
+			$log_file = WP_CONTENT_DIR . '/uploads/rozetkapay-logs/rozetkapay-' . gmdate( 'Y-m-d' ) . '.log';
 			file_put_contents( $log_file, $formatted_message . PHP_EOL, FILE_APPEND | LOCK_EX );
 		}
 	}

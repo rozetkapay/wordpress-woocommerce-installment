@@ -104,7 +104,7 @@ class RP_Standard_API {
 
 		$test_data = array(
 			'mode'         => 'hosted',
-			'external_id'  => 'connection-test-' . time() . '-' . rand( 1000, 9999 ),
+			'external_id'  => 'connection-test-' . time() . '-' . wp_rand( 1000, 9999 ),
 			'amount'       => 0.01,
 			'currency'     => 'UAH',
 			'description'  => 'API Connection test',
@@ -249,7 +249,7 @@ class RP_Standard_API {
 			return 'Оплата через RozetkaPay';
 		}
 
-		$clean = strip_tags( $description );
+		$clean = wp_strip_all_tags( $description );
 		$clean = preg_replace( '/\s+/', ' ', $clean );
 		// Дозволяємо українські символи
 		$clean = preg_replace( '/[^a-zA-Zа-яА-Яі�є�Ї�0-9\s\-_\.\#№]/u', '', $clean );
@@ -275,7 +275,7 @@ class RP_Standard_API {
 			return '';
 		}
 
-		$clean = strip_tags( trim( $text ) );
+		$clean = wp_strip_all_tags( trim( $text ) );
 		$clean = preg_replace( '/\s+/', ' ', $clean );
 		$clean = preg_replace( '/[^\p{L}\p{N}\s\-_\.]/u', '', $clean );
 

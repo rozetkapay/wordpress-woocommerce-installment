@@ -35,44 +35,22 @@ class RP_Payparts_Banks_Page {
 
 		$auth = base64_encode( $login . ':' . $password );
 
-		if ( function_exists( 'wp_remote_get' ) ) {
-			$resp = wp_remote_get(
-				$url,
-				array(
-					'headers' => array(
-						'Authorization' => 'Basic ' . $auth,
-						'Accept'        => 'application/json',
-						'Content-Type'  => 'application/json',
-					),
-					'timeout' => 30,
-				)
-			);
-			if ( is_wp_error( $resp ) ) {
-				return array( 'error' => $resp->get_error_message() );
-			}
-			$code = wp_remote_retrieve_response_code( $resp );
-			$body = wp_remote_retrieve_body( $resp );
-		} else {
-			$ch = curl_init( $url );
-			curl_setopt_array(
-				$ch,
-				array(
-					CURLOPT_RETURNTRANSFER => true,
-					CURLOPT_TIMEOUT        => 30,
-					CURLOPT_HTTPHEADER     => array(
-						'Authorization: Basic ' . $auth,
-						'Accept: application/json',
-						'Content-Type: application/json',
-					),
-				)
-			);
-			$body = curl_exec( $ch );
-			$code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
-			$err  = curl_error( $ch );
-			curl_close( $ch );
-			if ( $err ) {
-				return array( 'error' => $err ); }
+		$resp = wp_remote_get(
+			$url,
+			array(
+				'headers' => array(
+					'Authorization' => 'Basic ' . $auth,
+					'Accept'        => 'application/json',
+					'Content-Type'  => 'application/json',
+				),
+				'timeout' => 30,
+			)
+		);
+		if ( is_wp_error( $resp ) ) {
+			return array( 'error' => $resp->get_error_message() );
 		}
+		$code = wp_remote_retrieve_response_code( $resp );
+		$body = wp_remote_retrieve_body( $resp );
 
 		if ( (int) $code !== 200 ) {
 			return array(
