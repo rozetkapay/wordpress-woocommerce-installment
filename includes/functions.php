@@ -408,6 +408,7 @@ if ( ! function_exists( 'rp_payparts_validate_amount' ) ) {
 			return array(
 				'valid'   => false,
 				'message' => sprintf(
+					// translators: %s: formatted minimum order amount.
 					__( 'Мінімальна сума для розстрочки: %s', 'rozetkapay-payparts' ),
 					rp_payparts_format_currency( $limits['min_amount'] )
 				),
@@ -419,6 +420,7 @@ if ( ! function_exists( 'rp_payparts_validate_amount' ) ) {
 			return array(
 				'valid'   => false,
 				'message' => sprintf(
+					// translators: %s: formatted maximum order amount.
 					__( 'Максимальна сума для розстрочки: %s', 'rozetkapay-payparts' ),
 					rp_payparts_format_currency( $limits['max_amount'] )
 				),

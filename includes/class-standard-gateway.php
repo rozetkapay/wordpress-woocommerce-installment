@@ -533,8 +533,10 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			case 'processing':
 				if ( ! $order->is_paid() ) {
 					$order->payment_complete( $payment_id );
+					// translators: %s: payment ID in RozetkaPay.
 					$note = sprintf( __( 'Платіж успішно завершено через RozetkaPay. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 					if ( ! empty( $receipt_number ) ) {
+						// translators: %s: receipt number.
 						$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 					}
 					$order->add_order_note( $note );
@@ -547,11 +549,14 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			case 'refunding':
 			case 'partially_refunded':
 				if ( $order->get_status() !== 'refunded' ) {
+					// translators: %s: payment ID in RozetkaPay.
 					$note = sprintf( __( 'Платіж повернено через RozetkaPay. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 					if ( ! empty( $receipt_number ) ) {
+						// translators: %s: receipt number.
 						$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 					}
 					if ( ! empty( $status_code ) ) {
+						// translators: %s: payment status code.
 						$note .= sprintf( __( ' | Код: %s', 'rozetkapay-payparts' ), $status_code );
 					}
 					$order->update_status( 'refunded', $note );
@@ -564,11 +569,14 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			case 'error':
 			case 'rejected':
 			case 'transaction_rejected':
+				// translators: %s: payment ID in RozetkaPay.
 				$note = sprintf( __( 'Платіж не вдався в RozetkaPay. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 				if ( ! empty( $status_code ) ) {
+					// translators: %s: payment error code.
 					$note .= sprintf( __( ' | Код помилки: %s', 'rozetkapay-payparts' ), $status_code );
 				}
 				if ( ! empty( $receipt_number ) ) {
+					// translators: %s: receipt number.
 					$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 				}
 				$order->update_status( 'failed', $note );
@@ -577,8 +585,10 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 
 			case 'cancelled':
 			case 'canceled':
+				// translators: %s: payment ID in RozetkaPay.
 				$note = sprintf( __( 'Платіж скасовано в RozetkaPay. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 				if ( ! empty( $receipt_number ) ) {
+					// translators: %s: receipt number.
 					$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 				}
 				$order->update_status( 'cancelled', $note );
@@ -588,8 +598,10 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			case 'pending':
 			case 'init':
 				if ( $order->get_status() !== 'processing' && $order->get_status() !== 'completed' ) {
+					// translators: %s: payment ID in RozetkaPay.
 					$note = sprintf( __( 'Платіж в обробці в RozetkaPay. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 					if ( ! empty( $receipt_number ) ) {
+						// translators: %s: receipt number.
 						$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 					}
 					$order->update_status( 'on-hold', $note );
@@ -602,8 +614,10 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 
 				// Якщо статус невідомий, але is_success = false
 				if ( $is_success === false ) {
+					// translators: %s: payment ID in RozetkaPay.
 					$note = sprintf( __( 'Платіж не вдався в RozetkaPay (is_success=false). ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 					if ( ! empty( $status_code ) ) {
+						// translators: %s: payment error code.
 						$note .= sprintf( __( ' | Код помилки: %s', 'rozetkapay-payparts' ), $status_code );
 					}
 					$order->update_status( 'failed', $note );
@@ -612,8 +626,10 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 					// Якщо is_success = true, позначаємо як оплачений
 					if ( ! $order->is_paid() ) {
 						$order->payment_complete( $payment_id );
+						// translators: %s: payment ID in RozetkaPay.
 						$note = sprintf( __( 'Платіж успішний за is_success=true. ID платежу: %s', 'rozetkapay-payparts' ), $payment_id );
 						if ( ! empty( $status_code ) ) {
+							// translators: %s: payment status code.
 							$note .= sprintf( __( ' | Код: %s', 'rozetkapay-payparts' ), $status_code );
 						}
 						$order->add_order_note( $note );
@@ -621,8 +637,10 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 					}
 				} else {
 					// Додаємо примітку з невідомим статусом
+					// translators: %1$s: payment status returned by RozetkaPay, %2$s: payment ID.
 					$note = sprintf( __( 'Отримано невідомий статус платежу: %1$s | ID: %2$s', 'rozetkapay-payparts' ), $payment_status, $payment_id );
 					if ( ! empty( $status_code ) ) {
+						// translators: %s: payment status code.
 						$note .= sprintf( __( ' | Код: %s', 'rozetkapay-payparts' ), $status_code );
 					}
 					$order->add_order_note( $note );

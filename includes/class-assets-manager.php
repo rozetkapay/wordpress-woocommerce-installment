@@ -445,6 +445,7 @@ jQuery(document).ready(function($) {
 					echo '<div class="notice notice-warning is-dismissible">';
 					echo '<p><strong>RozetkaPay Payparts:</strong> ';
 					printf(
+						// translators: %s: comma-separated list of missing plugin files.
 						esc_html__( 'Відсутні критичні файли: %s', 'rozetkapay-payparts' ),
 						esc_html( implode( ', ', $missing_files ) )
 					);

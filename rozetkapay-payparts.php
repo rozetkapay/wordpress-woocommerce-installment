@@ -338,6 +338,7 @@ function rp_payparts_activation_notice() {
 		echo '<div class="notice notice-success is-dismissible">';
 		echo '<p><strong>' . esc_html__( 'RozetkaPay Payparts активовано!', 'rozetkapay-payparts' ) . '</strong></p>';
 		echo '<p>' . sprintf(
+			// translators: %1$s: link to the instalments gateway settings, %2$s: link to the bank cards gateway settings.
 			esc_html__( 'Налаштуйте методи оплати: %1$s або %2$s', 'rozetkapay-payparts' ),
 			'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_payparts' ) ) . '">' . esc_html__( 'Оплата частинами', 'rozetkapay-payparts' ) . '</a>',
 			'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_standard' ) ) . '">' . esc_html__( 'Банківські картки', 'rozetkapay-payparts' ) . '</a>'

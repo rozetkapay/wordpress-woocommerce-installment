@@ -577,12 +577,14 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			if ( $calculations['min_payment'] === $calculations['max_payment'] ) {
 				// Якщо лише один варіант платежу
 				$message = sprintf(
+					// translators: %s: monthly payment amount in UAH.
 					__( 'Доступна оплата частинами — %s грн на місяць', 'rozetkapay-payparts' ),
 					number_format( $calculations['min_payment'], 0, ',', ' ' )
 				);
 			} else {
 				// Якщо декілька варіантів
 				$message = sprintf(
+					// translators: %1$s: minimum monthly payment in UAH, %2$s: maximum monthly payment in UAH.
 					__( 'Розстрочка від %1$s до %2$s грн/міс', 'rozetkapay-payparts' ),
 					number_format( $calculations['min_payment'], 0, ',', ' ' ),
 					number_format( $calculations['max_payment'], 0, ',', ' ' )
@@ -1645,6 +1647,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			}
 
 			wc_add_notice(
+				// translators: %s: error message returned while creating the payment.
 				sprintf( __( 'Помилка створення платежу: %s', 'rozetkapay-payparts' ), $e->getMessage() ),
 				'error'
 			);
@@ -1753,6 +1756,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			'parts_count'                => intval( $term ),
 			'amount'                     => $order_total,
 			'description'                => sprintf(
+				// translators: %1$s: order number, %2$s: number of instalment parts.
 				__( 'Оплата замовлення №%1$s на %2$s частин', 'rozetkapay-payparts' ),
 				$order->get_order_number(),
 				$term
@@ -1950,6 +1954,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			foreach ( $input_banks as $bank ) {
 				if ( ! empty( $bank ) && ! in_array( $bank, $valid_banks, true ) ) {
 					$errors[] = sprintf(
+						// translators: %1$s: bank slug entered in the settings, %2$s: comma-separated list of supported bank slugs.
 						__( 'Невідомий банк: %1$s. Доступні: %2$s', 'rozetkapay-payparts' ),
 						$bank,
 						implode( ', ', $valid_banks )
@@ -1964,6 +1969,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			foreach ( $input_terms as $term ) {
 				if ( ! empty( $term ) && ( ! is_numeric( $term ) || intval( $term ) < 2 || intval( $term ) > 25 ) ) {
 					$errors[] = sprintf(
+						// translators: %s: instalment term entered in the settings.
 						__( 'Некоректний термін: %s. Допустимі: 2-25 місяців', 'rozetkapay-payparts' ),
 						$term
 					);
