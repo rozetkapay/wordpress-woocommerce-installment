@@ -18,7 +18,7 @@ class RP_Payparts_API {
 	public function __construct( $api_user, $api_pass, $test_mode = false ) {
 		$this->api_user  = $api_user;
 		$this->api_pass  = $api_pass;
-		$this->test_mode = false;
+		$this->test_mode = (bool) $test_mode;
 		$this->api_base  = 'https://api.rozetkapay.com/api/payparts/v1';
 		$this->logger    = wc_get_logger();
 
@@ -717,33 +717,5 @@ class RP_Payparts_API {
 		}
 
 		return empty( $errors ) ? true : $errors;
-	}
-
-	/**
-	 * Отримати детальну інформацію про помилку API
-	 */
-	public function get_last_api_error() {
-		// Цей метод можна розширити для зберігання останньої помилки
-		return get_transient( 'rp_payparts_last_api_error' );
-	}
-
-	/**
-	 * Зберегти інформацію про помилку API
-	 */
-	private function store_api_error( $error_info ) {
-		set_transient( 'rp_payparts_last_api_error', $error_info, 300 ); // 5 хвилин
-	}
-
-	/**
-	 * Розширене логування для відладки
-	 */
-	private function debug_log( $message, $data = null ) {
-		$this->log_debug(
-			$message,
-			array(
-				'source' => 'rp-payparts-api',
-				'data'   => $data,
-			)
-		);
 	}
 }
