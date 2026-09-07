@@ -27,6 +27,12 @@ add_action(
 				__FILE__,
 				true
 			);
+			// The gateway renders through payment_fields() and the classic cart/checkout hooks only.
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+				'cart_checkout_blocks',
+				__FILE__,
+				false
+			);
 		}
 	}
 );

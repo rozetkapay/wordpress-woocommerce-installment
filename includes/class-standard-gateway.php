@@ -24,7 +24,6 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 	public $api_user;
 	public $api_pass;
 	public $debug_mode;
-	public $advanced_logging;
 	public $order_ref_prefix;
 	public $enable_status_polling;
 
@@ -55,8 +54,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 		$this->api_pass = $this->get_option( 'api_pass' );
 
 		// Додаткові налаштування (лише відлагодження)
-		$this->debug_mode       = 'yes' === $this->get_option( 'debug_mode' );
-		$this->advanced_logging = 'yes' === $this->get_option( 'advanced_logging' );
+		$this->debug_mode = 'yes' === $this->get_option( 'debug_mode' );
 
 		// Ініціалізація API-клієнта
 		$this->init_api_client();
@@ -72,9 +70,6 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			add_action( 'wp_ajax_rp_check_payment_status', array( $this, 'ajax_check_payment_status' ) );
 			error_log( 'RozetkaPay: AJAX handlers registered in constructor' );
 		}
-
-		// Ініціалізація логування
-		$this->init_logging();
 
 		// Міграція старих налаштувань
 		$this->migrate_old_settings();
@@ -203,14 +198,6 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 				'type'        => 'checkbox',
 				'label'       => __( 'Увімкнути детальне логування', 'rozetkapay-payparts' ),
 				'description' => __( 'Вмикайте для діагностики проблем', 'rozetkapay-payparts' ),
-				'default'     => 'no',
-				'desc_tip'    => true,
-			),
-			'advanced_logging'      => array(
-				'title'       => __( 'Розширене логування', 'rozetkapay-payparts' ),
-				'type'        => 'checkbox',
-				'label'       => __( 'Створювати детальні лог-файли', 'rozetkapay-payparts' ),
-				'description' => __( 'Зберігає детальні логи в окремі файли', 'rozetkapay-payparts' ),
 				'default'     => 'no',
 				'desc_tip'    => true,
 			),
@@ -851,51 +838,16 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 	}
 
 	// ДОПОМІЖНІ МЕТОДИ (логування тощо)
-	private function init_logging() {
-		if ( $this->advanced_logging ) {
-			add_action( 'init', array( $this, 'setup_custom_logger' ) );
-		}
-	}
-
-	public function setup_custom_logger() {
-		if ( ! $this->advanced_logging ) {
-			return;
-		}
-
-		$log_dir = WP_CONTENT_DIR . '/uploads/rozetkapay-logs/';
-		if ( ! file_exists( $log_dir ) ) {
-			wp_mkdir_p( $log_dir );
-		}
-
-		$htaccess_file = $log_dir . '.htaccess';
-		if ( ! file_exists( $htaccess_file ) ) {
-			file_put_contents( $htaccess_file, "deny from all\n" );
-		}
-	}
-
 	private function log( $level, $message, $context = array() ) {
-		if ( ! $this->advanced_logging && ! $this->debug_mode ) {
+		if ( ! $this->debug_mode ) {
 			return;
 		}
-
-		$timestamp         = current_time( 'Y-m-d H:i:s' );
-		$formatted_message = sprintf(
-			'[%s] [%s] %s',
-			$timestamp,
-			strtoupper( $level ),
-			$message
-		);
 
 		if ( ! empty( $context ) ) {
-			$formatted_message .= ' | Context: ' . json_encode( $context, JSON_UNESCAPED_UNICODE );
+			$message .= ' | Context: ' . wp_json_encode( $context );
 		}
 
-		error_log( 'RozetkaPay: ' . $formatted_message );
-
-		if ( $this->advanced_logging ) {
-			$log_file = WP_CONTENT_DIR . '/uploads/rozetkapay-logs/rozetkapay-' . gmdate( 'Y-m-d' ) . '.log';
-			file_put_contents( $log_file, $formatted_message . PHP_EOL, FILE_APPEND | LOCK_EX );
-		}
+		wc_get_logger()->log( $level, $message, array( 'source' => 'rozetkapay-payparts' ) );
 	}
 
 	// МЕТОДИ АДМІНКИ ТА AJAX (скорочені версії)
