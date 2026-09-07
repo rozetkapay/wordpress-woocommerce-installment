@@ -13,6 +13,7 @@ class RP_Payparts_API {
 	private $test_mode;
 	private $api_base;
 	private $logger;
+	private $debug_mode;
 
 	public function __construct( $api_user, $api_pass, $test_mode = false ) {
 		$this->api_user  = $api_user;
@@ -20,6 +21,39 @@ class RP_Payparts_API {
 		$this->test_mode = false;
 		$this->api_base  = 'https://api.rozetkapay.com/api/payparts/v1';
 		$this->logger    = wc_get_logger();
+
+		$settings         = get_option( 'woocommerce_rp_payparts_settings', array() );
+		$this->debug_mode = is_array( $settings ) && isset( $settings['debug_mode'] ) && 'yes' === $settings['debug_mode'];
+	}
+
+	/**
+	 * Record a debug entry with the request or response payload.
+	 *
+	 * Payloads contain customer data, so they are only recorded while debug mode is enabled.
+	 *
+	 * @param string $message Message to record.
+	 * @param array  $context Logger context.
+	 */
+	private function log_debug( $message, $context = array() ) {
+		if ( ! $this->debug_mode ) {
+			return;
+		}
+
+		$this->logger->debug( $message, $context );
+	}
+
+	/**
+	 * Record an error entry while debug mode is enabled.
+	 *
+	 * @param string $message Message to record.
+	 * @param array  $context Logger context.
+	 */
+	private function log_error( $message, $context = array() ) {
+		if ( ! $this->debug_mode ) {
+			return;
+		}
+
+		$this->logger->error( $message, $context );
 	}
 
 	/**
@@ -51,7 +85,7 @@ class RP_Payparts_API {
 			$args['body'] = wp_json_encode( $data );
 		}
 
-		$this->logger->debug(
+		$this->log_debug(
 			sprintf( '%s request to %s', $method, $endpoint ),
 			array(
 				'source' => 'rp-payparts-api',
@@ -62,7 +96,7 @@ class RP_Payparts_API {
 		$response = wp_remote_request( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
-			$this->logger->error(
+			$this->log_error(
 				'HTTP request failed: ' . $response->get_error_message(),
 				array( 'source' => 'rp-payparts-api' )
 			);
@@ -72,7 +106,7 @@ class RP_Payparts_API {
 		$code = wp_remote_retrieve_response_code( $response );
 		$body = wp_remote_retrieve_body( $response );
 
-		$this->logger->debug(
+		$this->log_debug(
 			sprintf( 'API response: %d', $code ),
 			array(
 				'source' => 'rp-payparts-api',
@@ -109,10 +143,10 @@ class RP_Payparts_API {
 	public function fetch_banks() {
 		$result = $this->make_request( 'GET', '/banks/info?include_fees=true' );
 
-		$this->logger->debug( 'Bank response: ' . print_r( $result, true ), array( 'source' => 'rp-payparts-api' ) );
+		$this->log_debug( 'Bank response: ' . wp_json_encode( $result ), array( 'source' => 'rp-payparts-api' ) );
 
 		if ( is_wp_error( $result ) ) {
-			$this->logger->error(
+			$this->log_error(
 				'Failed to fetch banks: ' . $result->get_error_message(),
 				array( 'source' => 'rp-payparts-api' )
 			);
@@ -133,8 +167,8 @@ class RP_Payparts_API {
 		}
 
 		// Логуємо відповідь API для відладки
-		$this->logger->debug(
-			'Payment creation response: ' . print_r( $result, true ),
+		$this->log_debug(
+			'Payment creation response: ' . wp_json_encode( $result ),
 			array( 'source' => 'rp-payparts-api' )
 		);
 
@@ -151,17 +185,17 @@ class RP_Payparts_API {
 
 		$endpoint = '/info/operation';
 		$params   = array(
-			'external_id' => urlencode( (string) $external_id ),
+			'external_id' => rawurlencode( (string) $external_id ),
 		);
 
 		if ( ! empty( $operation_id ) ) {
-			$params['operation_id'] = urlencode( (string) $operation_id );
+			$params['operation_id'] = rawurlencode( (string) $operation_id );
 		}
 
 		$url_params    = http_build_query( $params );
 		$full_endpoint = $endpoint . '?' . $url_params;
 
-		$this->logger->debug(
+		$this->log_debug(
 			'PayParts API: Requesting operation info',
 			array(
 				'source'   => 'rp-payparts-api',
@@ -173,7 +207,7 @@ class RP_Payparts_API {
 		$result = $this->make_request( 'GET', $full_endpoint );
 
 		if ( is_wp_error( $result ) ) {
-			$this->logger->error(
+			$this->log_error(
 				'PayParts API: Failed to get operation info - ' . $result->get_error_message(),
 				array(
 					'source'       => 'rp-payparts-api',
@@ -184,7 +218,7 @@ class RP_Payparts_API {
 			return $result;
 		}
 
-		$this->logger->debug(
+		$this->log_debug(
 			'PayParts API: Operation info response',
 			array(
 				'source'   => 'rp-payparts-api',
@@ -203,9 +237,9 @@ class RP_Payparts_API {
 			return new WP_Error( 'missing_external_id', 'external_id is required' );
 		}
 
-		$endpoint = '/info?external_id=' . urlencode( (string) $external_id );
+		$endpoint = '/info?external_id=' . rawurlencode( (string) $external_id );
 
-		$this->logger->debug(
+		$this->log_debug(
 			'PayParts API: Requesting operations info',
 			array(
 				'source'      => 'rp-payparts-api',
@@ -216,7 +250,7 @@ class RP_Payparts_API {
 		$result = $this->make_request( 'GET', $endpoint );
 
 		if ( is_wp_error( $result ) ) {
-			$this->logger->error(
+			$this->log_error(
 				'PayParts API: Failed to get operations info - ' . $result->get_error_message(),
 				array(
 					'source'      => 'rp-payparts-api',
@@ -226,7 +260,7 @@ class RP_Payparts_API {
 			return $result;
 		}
 
-		$this->logger->debug(
+		$this->log_debug(
 			'PayParts API: Operations info response',
 			array(
 				'source'   => 'rp-payparts-api',
@@ -282,7 +316,7 @@ class RP_Payparts_API {
 	public function verify_callback_enhanced( $payload, $signature ) {
 		try {
 			if ( empty( $payload ) || empty( $signature ) ) {
-				$this->logger->error(
+				$this->log_error(
 					'PayParts: Callback verification failed - empty payload or signature',
 					array( 'source' => 'rp-payparts-api' )
 				);
@@ -305,12 +339,12 @@ class RP_Payparts_API {
 			$is_valid = hash_equals( $expected_clean, $signature_clean );
 
 			if ( $is_valid ) {
-				$this->logger->debug(
+				$this->log_debug(
 					'PayParts: Callback signature verified successfully',
 					array( 'source' => 'rp-payparts-api' )
 				);
 			} else {
-				$this->logger->error(
+				$this->log_error(
 					'PayParts: Callback signature verification failed',
 					array(
 						'source'                => 'rp-payparts-api',
@@ -325,7 +359,7 @@ class RP_Payparts_API {
 			return $is_valid;
 
 		} catch ( Exception $e ) {
-			$this->logger->error(
+			$this->log_error(
 				'PayParts: Callback verification exception - ' . $e->getMessage(),
 				array( 'source' => 'rp-payparts-api' )
 			);
@@ -510,7 +544,7 @@ class RP_Payparts_API {
 			$debug_info['operations_info'] = $operations_info;
 		}
 
-		$this->logger->debug(
+		$this->log_debug(
 			'PayParts API Debug Info',
 			array(
 				'source'     => 'rp-payparts-api',
@@ -558,7 +592,7 @@ class RP_Payparts_API {
 		$expected_clean                = rtrim( $expected_signature, '=' );
 		$debug_info['signature_match'] = hash_equals( $expected_clean, $signature_clean );
 
-		$this->logger->debug(
+		$this->log_debug(
 			'PayParts: Signature Debug Info',
 			array(
 				'source'          => 'rp-payparts-api',
@@ -637,7 +671,7 @@ class RP_Payparts_API {
 		delete_transient( 'rp_payparts_banks' );
 		delete_transient( 'rp_payparts_api_limits' );
 
-		$this->logger->debug(
+		$this->log_debug(
 			'PayParts API: Cache cleared',
 			array( 'source' => 'rp-payparts-api' )
 		);
@@ -704,23 +738,12 @@ class RP_Payparts_API {
 	 * Розширене логування для відладки
 	 */
 	private function debug_log( $message, $data = null ) {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			$log_entry = '[RozetkaPay PayParts API] ' . $message;
-			if ( $data ) {
-				$log_entry .= ' Data: ' . print_r( $data, true );
-			}
-			error_log( $log_entry );
-		}
-
-		// Також логуємо через WooCommerce logger
-		if ( $this->logger ) {
-			$this->logger->debug(
-				$message,
-				array(
-					'source' => 'rp-payparts-api',
-					'data'   => $data,
-				)
-			);
-		}
+		$this->log_debug(
+			$message,
+			array(
+				'source' => 'rp-payparts-api',
+				'data'   => $data,
+			)
+		);
 	}
 }

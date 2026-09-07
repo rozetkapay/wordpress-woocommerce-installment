@@ -47,21 +47,35 @@ class RP_Payparts_Admin {
 	 * Адмін-сторінка
 	 */
 	public function admin_page() {
-		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'overview';
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_die( esc_html__( 'Access denied', 'rozetkapay-payparts' ) );
+		}
+
+		$active_tab = 'overview';
+		if ( isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'rp_payparts_admin_tab' ) && isset( $_GET['tab'] ) ) {
+			$requested = sanitize_key( wp_unslash( $_GET['tab'] ) );
+			if ( in_array( $requested, array( 'overview', 'orders', 'settings' ), true ) ) {
+				$active_tab = $requested;
+			}
+		}
+
+		$overview_url = wp_nonce_url( admin_url( 'admin.php?page=rp-payparts&tab=overview' ), 'rp_payparts_admin_tab' );
+		$orders_url   = wp_nonce_url( admin_url( 'admin.php?page=rp-payparts&tab=orders' ), 'rp_payparts_admin_tab' );
+		$settings_url = wp_nonce_url( admin_url( 'admin.php?page=rp-payparts&tab=settings' ), 'rp_payparts_admin_tab' );
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'RozetkaPay Оплата частинами', 'rozetkapay-payparts' ); ?></h1>
 
 			<nav class="nav-tab-wrapper">
-				<a href="?page=rp-payparts&tab=overview"
+				<a href="<?php echo esc_url( $overview_url ); ?>"
 					class="nav-tab <?php echo $active_tab === 'overview' ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Огляд', 'rozetkapay-payparts' ); ?>
 				</a>
-				<a href="?page=rp-payparts&tab=orders"
+				<a href="<?php echo esc_url( $orders_url ); ?>"
 					class="nav-tab <?php echo $active_tab === 'orders' ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Замовлення', 'rozetkapay-payparts' ); ?>
 				</a>
-				<a href="?page=rp-payparts&tab=settings"
+				<a href="<?php echo esc_url( $settings_url ); ?>"
 					class="nav-tab <?php echo $active_tab === 'settings' ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Налаштування', 'rozetkapay-payparts' ); ?>
 				</a>

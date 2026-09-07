@@ -116,13 +116,13 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
 		$request_uri    = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 
-		error_log( 'RozetkaPay Payparts Callback: === STARTED ===' );
-		error_log( 'RozetkaPay Callback: Request method: ' . $request_method );
-		error_log( 'RozetkaPay Callback: Request URI: ' . $request_uri );
+		rp_payparts_log( 'RozetkaPay Payparts Callback: === STARTED ===' );
+		rp_payparts_log( 'RozetkaPay Callback: Request method: ' . $request_method );
+		rp_payparts_log( 'RozetkaPay Callback: Request URI: ' . $request_uri );
 
 		// GET-запити відхиляємо
 		if ( $request_method === 'GET' ) {
-			error_log( 'RozetkaPay Callback: GET request - returning error' );
+			rp_payparts_log( 'RozetkaPay Callback: GET request - returning error' );
 			http_response_code( 400 );
 			echo 'Empty payload';
 			exit;
@@ -132,14 +132,14 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		$payload = file_get_contents( 'php://input' );
 
 		if ( empty( $payload ) ) {
-			error_log( 'RozetkaPay Callback: Empty payload' );
+			rp_payparts_log( 'RozetkaPay Callback: Empty payload' );
 			http_response_code( 400 );
 			echo 'Empty payload';
 			exit;
 		}
 
-		error_log( 'RozetkaPay Callback: Payload length: ' . strlen( $payload ) );
-		error_log( 'RozetkaPay Callback RAW data: ' . $payload ); // RAW-логування
+		rp_payparts_log( 'RozetkaPay Callback: Payload length: ' . strlen( $payload ) );
+		rp_payparts_log( 'RozetkaPay Callback RAW data: ' . $payload ); // RAW-логування
 
 		// ВИПРАВЛЕНО: правильне отримання підпису
 		$signature        = '';
@@ -153,7 +153,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		foreach ( $possible_headers as $header ) {
 			if ( isset( $_SERVER[ $header ] ) && ! empty( $_SERVER[ $header ] ) ) {
 				$signature = sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
-				error_log( "RozetkaPay Callback: Got signature from $header" );
+				rp_payparts_log( "RozetkaPay Callback: Got signature from $header" );
 				break;
 			}
 		}
@@ -171,12 +171,12 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		$gateway_settings = get_option( 'woocommerce_rp_payparts_settings', array() );
 		$test_mode        = isset( $gateway_settings['test_mode'] ) && $gateway_settings['test_mode'] === 'yes';
 
-		error_log( 'RozetkaPay Callback: Test mode: ' . ( $test_mode ? 'YES' : 'NO' ) );
+		rp_payparts_log( 'RozetkaPay Callback: Test mode: ' . ( $test_mode ? 'YES' : 'NO' ) );
 
 		// ВИПРАВЛЕНО: правильна перевірка підпису
 		if ( ! $test_mode ) {
 			if ( empty( $signature ) ) {
-				error_log( 'RozetkaPay Callback Error: Missing signature in production mode' );
+				rp_payparts_log( 'RozetkaPay Callback Error: Missing signature in production mode' );
 				http_response_code( 403 );
 				echo 'Missing signature';
 				exit;
@@ -184,31 +184,31 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 			$api = $this->get_api_client();
 			if ( ! $api || ! $api->verify_callback_enhanced( $payload, $signature ) ) {
-				error_log( 'RozetkaPay Callback Error: Invalid signature' );
+				rp_payparts_log( 'RozetkaPay Callback Error: Invalid signature' );
 				http_response_code( 403 );
 				echo 'Invalid signature';
 				exit;
 			}
-			error_log( 'RozetkaPay Callback: Signature verified successfully' );
+			rp_payparts_log( 'RozetkaPay Callback: Signature verified successfully' );
 		} else {
-			error_log( 'RozetkaPay Callback: TEST MODE - skipping signature verification' );
+			rp_payparts_log( 'RozetkaPay Callback: TEST MODE - skipping signature verification' );
 		}
 
 		// Парсимо JSON
 		$data = json_decode( $payload, true );
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			error_log( 'RozetkaPay Callback Error: Invalid JSON - ' . json_last_error_msg() );
+			rp_payparts_log( 'RozetkaPay Callback Error: Invalid JSON - ' . json_last_error_msg() );
 			http_response_code( 400 );
 			echo 'Invalid JSON';
 			exit;
 		}
 
-		error_log( 'RozetkaPay Callback: Successfully decoded JSON' );
-		error_log( 'RozetkaPay Callback decoded data: ' . print_r( $data, true ) );
+		rp_payparts_log( 'RozetkaPay Callback: Successfully decoded JSON' );
+		rp_payparts_log( 'RozetkaPay Callback decoded data: ' . wp_json_encode( $data ) );
 
 		// Тестовий callback
 		if ( isset( $data['test'] ) && $data['test'] === true ) {
-			error_log( 'RozetkaPay Callback: Test callback processed' );
+			rp_payparts_log( 'RozetkaPay Callback: Test callback processed' );
 			http_response_code( 200 );
 			echo 'OK';
 			exit;
@@ -243,31 +243,31 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		}
 
 		if ( ! $external_id || ! $status ) {
-			error_log( 'RozetkaPay Callback Error: Missing external_id or status' );
-			error_log( 'Available data: ' . print_r( $data, true ) );
+			rp_payparts_log( 'RozetkaPay Callback Error: Missing external_id or status' );
+			rp_payparts_log( 'Available data: ' . wp_json_encode( $data ) );
 			http_response_code( 400 );
 			echo 'Missing external_id or status';
 			exit;
 		}
 
-		error_log( "RozetkaPay Callback: external_id=$external_id, status=$status, operation_id=$operation_id" );
+		rp_payparts_log( "RozetkaPay Callback: external_id=$external_id, status=$status, operation_id=$operation_id" );
 
 		// Пошук замовлення
 		$order = $this->find_order_by_reference( $external_id, $operation_id );
 
 		if ( ! $order ) {
-			error_log( 'RozetkaPay Callback Error: Order not found for external_id=' . $external_id );
+			rp_payparts_log( 'RozetkaPay Callback Error: Order not found for external_id=' . $external_id );
 			http_response_code( 404 );
 			echo 'Order not found';
 			exit;
 		}
 
 		$order_id = $order->get_id();
-		error_log( "RozetkaPay Callback: Found order #$order_id" );
+		rp_payparts_log( "RozetkaPay Callback: Found order #$order_id" );
 
 		// Перевірка на дублювання подій
 		if ( $operation_id && $order->get_meta( '_rp_seen_event_' . $operation_id, true ) ) {
-			error_log( 'RozetkaPay Callback: Duplicate event ' . $operation_id );
+			rp_payparts_log( 'RozetkaPay Callback: Duplicate event ' . $operation_id );
 			http_response_code( 200 );
 			echo 'OK';
 			exit;
@@ -282,7 +282,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 					in_array( strtolower( $status ), array( 'refund', 'refunded', 'refund_successful', 'refunding' ), true ) ||
 					( strpos( strtolower( $status ), 'refund' ) !== false );
 
-		error_log( "RozetkaPay Callback: method=$method, is_refund=" . ( $is_refund ? 'YES' : 'NO' ) . ", amount=$amount" );
+		rp_payparts_log( "RozetkaPay Callback: method=$method, is_refund=" . ( $is_refund ? 'YES' : 'NO' ) . ", amount=$amount" );
 
 		// НОВЕ: обробка повернень PayParts
 		if ( $is_refund ) {
@@ -294,7 +294,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				$order->save();
 			}
 
-			error_log( "RozetkaPay Callback: Refund processed for order #$order_id" );
+			rp_payparts_log( "RozetkaPay Callback: Refund processed for order #$order_id" );
 			http_response_code( 200 );
 			echo 'OK';
 			exit;
@@ -311,7 +311,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				if ( $order->has_status( array( 'pending', 'on-hold' ) ) ) {
 					$order->payment_complete();
 					$order->add_order_note( 'PayParts: платіж успішно проведено через RozetkaPay (callback)' );
-					error_log( "RozetkaPay Callback: Order #$order_id marked as completed" );
+					rp_payparts_log( "RozetkaPay Callback: Order #$order_id marked as completed" );
 				}
 				break;
 
@@ -322,7 +322,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			case 'declined':
 				if ( ! $order->has_status( 'failed' ) ) {
 					$order->update_status( 'failed', 'PayParts: платіж відхилено через RozetkaPay (callback)' );
-					error_log( "RozetkaPay Callback: Order #$order_id marked as failed" );
+					rp_payparts_log( "RozetkaPay Callback: Order #$order_id marked as failed" );
 				}
 				break;
 
@@ -330,7 +330,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			case 'processing':
 				if ( ! $order->has_status( array( 'pending', 'on-hold', 'processing' ) ) ) {
 					$order->update_status( 'on-hold', 'PayParts: платіж очікує обробки (callback)' );
-					error_log( "RozetkaPay Callback: Order #$order_id marked as pending" );
+					rp_payparts_log( "RozetkaPay Callback: Order #$order_id marked as pending" );
 				}
 				break;
 
@@ -338,12 +338,12 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			case 'canceled':
 				if ( ! $order->has_status( 'cancelled' ) ) {
 					$order->update_status( 'cancelled', 'PayParts: платіж скасовано (callback)' );
-					error_log( "RozetkaPay Callback: Order #$order_id marked as cancelled" );
+					rp_payparts_log( "RozetkaPay Callback: Order #$order_id marked as cancelled" );
 				}
 				break;
 
 			default:
-				error_log( "RozetkaPay Callback: Unknown status '$status' for order #$order_id" );
+				rp_payparts_log( "RozetkaPay Callback: Unknown status '$status' for order #$order_id" );
 				$order->add_order_note( 'PayParts: невідомий статус платежу: ' . $status );
 		}
 
@@ -353,7 +353,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			$order->save();
 		}
 
-		error_log( 'RozetkaPay Callback: === COMPLETED SUCCESSFULLY ===' );
+		rp_payparts_log( 'RozetkaPay Callback: === COMPLETED SUCCESSFULLY ===' );
 		http_response_code( 200 );
 		echo 'OK';
 		exit;
@@ -421,13 +421,13 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			$refund_amount = $order_total;
 		}
 
-		error_log( "PayParts Callback Refund: processing order #$order_id, amount=$refund_amount of $order_total" );
+		rp_payparts_log( "PayParts Callback Refund: processing order #$order_id, amount=$refund_amount of $order_total" );
 
 		// Перевіряємо, чи ми вже обробляли це повернення
 		$refund_id_key = isset( $details['rrn'] ) ? $details['rrn'] : 'callback_' . current_time( 'timestamp' );
 
 		if ( $order->get_meta( '_rp_callback_refund_' . $refund_id_key, true ) ) {
-			error_log( "PayParts Callback Refund: already processed for key $refund_id_key" );
+			rp_payparts_log( "PayParts Callback Refund: already processed for key $refund_id_key" );
 			return;
 		}
 
@@ -454,7 +454,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			);
 
 			if ( $refund_id && ! is_wp_error( $refund_id ) ) {
-				error_log( "PayParts Callback Refund: created WC_Refund #$refund_id for amount $amount_to_refund" );
+				rp_payparts_log( "PayParts Callback Refund: created WC_Refund #$refund_id for amount $amount_to_refund" );
 
 				// Зберігаємо RRN, якщо є
 				if ( isset( $details['rrn'] ) && $details['rrn'] ) {
@@ -468,7 +468,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				$total_after_refund = $total_refunded + $amount_to_refund;
 				if ( $total_after_refund >= $order_total ) {
 					$order->update_status( 'refunded', 'PayParts: повне повернення оброблено через callback' );
-					error_log( "PayParts Callback Refund: order #$order_id status changed to refunded" );
+					rp_payparts_log( "PayParts Callback Refund: order #$order_id status changed to refunded" );
 				} else {
 					$order->add_order_note(
 						sprintf(
@@ -481,13 +481,13 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 				$order->save();
 			} else {
-				error_log(
+				rp_payparts_log(
 					'PayParts Callback Refund: Failed to create WC_Refund: ' .
 					( is_wp_error( $refund_id ) ? $refund_id->get_error_message() : 'unknown error' )
 				);
 			}
 		} else {
-			error_log( "PayParts Callback Refund: no new refund needed, already refunded $total_refunded" );
+			rp_payparts_log( "PayParts Callback Refund: no new refund needed, already refunded $total_refunded" );
 
 			// У будь-якому разі позначаємо як оброблений
 			$order->update_meta_data( '_rp_callback_refund_' . $refund_id_key, current_time( 'mysql' ) );
@@ -957,7 +957,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			}
 
 			if ( $this->debug_mode && $cart_total > 0 ) {
-				error_log( "RozetkaPay: Test mode filtering - cart total: {$cart_total}, filtered options: " . count( $filtered_options ) );
+				rp_payparts_log( "RozetkaPay: Test mode filtering - cart total: {$cart_total}, filtered options: " . count( $filtered_options ) );
 			}
 
 			return $filtered_options;
@@ -1005,7 +1005,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				// КРИТИЧНА ПЕРЕВІРКА: пропускаємо банк, якщо сума кошика менша за мінімум
 				if ( $bank_min_amount > 0 && $cart_total < $bank_min_amount ) {
 					if ( $this->debug_mode ) {
-						error_log( "RozetkaPay: Bank {$slug} filtered out - cart total {$cart_total} < min {$bank_min_amount}" );
+						rp_payparts_log( "RozetkaPay: Bank {$slug} filtered out - cart total {$cart_total} < min {$bank_min_amount}" );
 					}
 					continue;
 				}
@@ -1013,7 +1013,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				// Перевіряємо максимум також
 				if ( $bank_max_amount > 0 && $cart_total > $bank_max_amount ) {
 					if ( $this->debug_mode ) {
-						error_log( "RozetkaPay: Bank {$slug} filtered out - cart total {$cart_total} > max {$bank_max_amount}" );
+						rp_payparts_log( "RozetkaPay: Bank {$slug} filtered out - cart total {$cart_total} > max {$bank_max_amount}" );
 					}
 					continue;
 				}
@@ -1058,7 +1058,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		}
 
 		if ( $this->debug_mode && $cart_total > 0 ) {
-			error_log( "RozetkaPay: Production mode filtering - cart total: {$cart_total}, filtered options: " . count( $options ) );
+			rp_payparts_log( "RozetkaPay: Production mode filtering - cart total: {$cart_total}, filtered options: " . count( $options ) );
 		}
 
 		return $options;
@@ -1425,23 +1425,23 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 */
 	public function process_payment( $order_id ) {
 		if ( $this->debug_mode ) {
-			error_log( 'RozetkaPay DEBUG: process_payment() викликано для замовлення ' . $order_id );
+			rp_payparts_log( 'RozetkaPay DEBUG: process_payment() викликано для замовлення ' . $order_id );
 		}
 
 		$order = wc_get_order( $order_id );
 		// Переконуємось, що external_id (reference) збережено для PayParts
-		if ( function_exists( 'rp_build_reference' ) && isset( $order ) && $order ) {
+		if ( function_exists( 'rp_payparts_build_reference' ) && isset( $order ) && $order ) {
 			$external_id_tmp = $order->get_meta( '_rp_reference', true );
 			if ( empty( $external_id_tmp ) ) {
-				$external_id_tmp = rp_build_reference( $order, $this->order_ref_prefix );
+				$external_id_tmp = rp_payparts_build_reference( $order, $this->order_ref_prefix );
 			}
 			// необов’язковий окремий ключ для зв’язку payparts
 			$order->update_meta_data( '_rp_payparts_external_id', $external_id_tmp );
 			$order->save();
 		}
 
-		if ( function_exists( 'rp_build_reference' ) && $order ) {
-			rp_build_reference( $order, $this->order_ref_prefix ); }
+		if ( function_exists( 'rp_payparts_build_reference' ) && $order ) {
+			rp_payparts_build_reference( $order, $this->order_ref_prefix ); }
 
 		if ( ! $order ) {
 			wc_add_notice( __( 'Помилка отримання замовлення.', 'rozetkapay-payparts' ), 'error' );
@@ -1724,7 +1724,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		$order_total = floatval( $order->get_total() );
 		if ( abs( $total_amount - $order_total ) > 0.01 ) {
 			if ( $this->debug_mode ) {
-				error_log(
+				rp_payparts_log(
 					sprintf(
 						'RozetkaPay PayParts: products sum %.2f differs from order total %.2f, adjusting.',
 						$total_amount,
@@ -1749,8 +1749,8 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			'bank_name'                  => $bank_id,
 			'mode'                       => 'direct',
 			'auto_confirm_after_success' => ( $this->auto_confirm === 'yes' ),
-			'external_id'                => function_exists( 'rp_build_reference' )
-				? rp_build_reference( $order, $this->order_ref_prefix )
+			'external_id'                => function_exists( 'rp_payparts_build_reference' )
+				? rp_payparts_build_reference( $order, $this->order_ref_prefix )
 				: (string) $order->get_id(),
 			'currency'                   => $order->get_currency(),
 			'parts_count'                => intval( $term ),

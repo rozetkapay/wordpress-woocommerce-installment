@@ -25,15 +25,15 @@ class RP_Standard_API {
 		$this->api_user = $api_user;
 		$this->api_pass = $api_pass;
 
-		error_log( '=== RP_Standard_API: Ініціалізація ===' );
-		error_log( 'API User: ' . substr( $api_user, 0, 8 ) . '***' );
+		rp_payparts_log( '=== RP_Standard_API: Ініціалізація ===' );
+		rp_payparts_log( 'API User: ' . substr( $api_user, 0, 8 ) . '***' );
 	}
 
 	/**
 	 * ✅ Тестування з’єднання
 	 */
 	public function test_connection() {
-		error_log( 'RP_Standard_API: Тестування з’єднання...' );
+		rp_payparts_log( 'RP_Standard_API: Тестування з’єднання...' );
 
 		$url = $this->base_url . '/payments/v1/status';
 
@@ -48,47 +48,47 @@ class RP_Standard_API {
 			'sslverify' => true,
 		);
 
-		error_log( 'RP_Standard_API: Відправка тестового запиту на ' . $url );
+		rp_payparts_log( 'RP_Standard_API: Відправка тестового запиту на ' . $url );
 
 		$response = wp_remote_get( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			error_log( 'RP_Standard_API: ❌ Помилка WordPress: ' . $error_message );
+			rp_payparts_log( 'RP_Standard_API: ❌ Помилка WordPress: ' . $error_message );
 			return new WP_Error( 'connection_error', 'Помилка з\'єднання: ' . $error_message );
 		}
 
 		$http_code     = wp_remote_retrieve_response_code( $response );
 		$response_body = wp_remote_retrieve_body( $response );
 
-		error_log( 'RP_Standard_API: HTTP код: ' . $http_code );
-		error_log( 'RP_Standard_API: Відповідь: ' . $response_body );
+		rp_payparts_log( 'RP_Standard_API: HTTP код: ' . $http_code );
+		rp_payparts_log( 'RP_Standard_API: Відповідь: ' . $response_body );
 
 		switch ( $http_code ) {
 			case 200:
-				error_log( 'RP_Standard_API: ✅ Тест з’єднання успішний (HTTP 200)' );
+				rp_payparts_log( 'RP_Standard_API: ✅ Тест з’єднання успішний (HTTP 200)' );
 				return true;
 
 			case 401:
-				error_log( 'RP_Standard_API: ❌ Невірні API ключі (HTTP 401)' );
+				rp_payparts_log( 'RP_Standard_API: ❌ Невірні API ключі (HTTP 401)' );
 				return new WP_Error( 'auth_error', 'Невірні API ключі. Перевірте API User і API Pass.' );
 
 			case 403:
-				error_log( 'RP_Standard_API: ❌ Доступ заборонено (HTTP 403)' );
+				rp_payparts_log( 'RP_Standard_API: ❌ Доступ заборонено (HTTP 403)' );
 				return new WP_Error( 'permission_error', 'Доступ заборонено. Перевірте права API ключів.' );
 
 			case 404:
-				error_log( 'RP_Standard_API: Endpoint не знайдено, пробуємо створити тестовий платіж...' );
+				rp_payparts_log( 'RP_Standard_API: Endpoint не знайдено, пробуємо створити тестовий платіж...' );
 				return $this->test_with_minimal_payment();
 
 			case 500:
 			case 502:
 			case 503:
-				error_log( 'RP_Standard_API: ❌ Сервер RozetkaPay тимчасово недоступний' );
+				rp_payparts_log( 'RP_Standard_API: ❌ Сервер RozetkaPay тимчасово недоступний' );
 				return new WP_Error( 'server_error', 'Сервер RozetkaPay тимчасово недоступний. Спробуйте пізніше.' );
 
 			default:
-				error_log( 'RP_Standard_API: ❌ Неочікуваний HTTP код: ' . $http_code );
+				rp_payparts_log( 'RP_Standard_API: ❌ Неочікуваний HTTP код: ' . $http_code );
 				if ( $http_code < 500 ) {
 					return $this->test_with_minimal_payment();
 				}
@@ -100,7 +100,7 @@ class RP_Standard_API {
 	 * ✅ Альтернативний спосіб тестування через мінімальний платіж
 	 */
 	private function test_with_minimal_payment() {
-		error_log( 'RP_Standard_API: Альтернативне тестування через створення платежу...' );
+		rp_payparts_log( 'RP_Standard_API: Альтернативне тестування через створення платежу...' );
 
 		$test_data = array(
 			'mode'         => 'hosted',
@@ -115,10 +115,10 @@ class RP_Standard_API {
 		$result = $this->send_post_request( '/payments/v1/new', $test_data );
 
 		if ( $result['success'] ) {
-			error_log( 'RP_Standard_API: ✅ Альтернативний тест успішний — API працює коректно' );
+			rp_payparts_log( 'RP_Standard_API: ✅ Альтернативний тест успішний — API працює коректно' );
 			return true;
 		} else {
-			error_log( 'RP_Standard_API: ❌ Альтернативний тест неуспішний: ' . $result['error'] );
+			rp_payparts_log( 'RP_Standard_API: ❌ Альтернативний тест неуспішний: ' . $result['error'] );
 
 			if ( isset( $result['http_code'] ) ) {
 				switch ( $result['http_code'] ) {
@@ -127,7 +127,7 @@ class RP_Standard_API {
 					case 403:
 						return new WP_Error( 'permission_error', 'Недостатньо прав для створення платежів' );
 					case 422:
-						error_log( 'RP_Standard_API: ✅ HTTP 422 під час тесту — це нормально, отже API доступний' );
+						rp_payparts_log( 'RP_Standard_API: ✅ HTTP 422 під час тесту — це нормально, отже API доступний' );
 						return true;
 					default:
 						return new WP_Error( 'api_error', $result['error'] );
@@ -142,12 +142,12 @@ class RP_Standard_API {
 	 * ✅ Створення платежу
 	 */
 	public function create_payment( $payment_data ) {
-		error_log( '=== RP_Standard_API: Створення платежу ===' );
-		error_log( 'Початкові дані: ' . json_encode( $payment_data ) );
+		rp_payparts_log( '=== RP_Standard_API: Створення платежу ===' );
+		rp_payparts_log( 'Початкові дані: ' . wp_json_encode( $payment_data ) );
 
 		if ( empty( $payment_data['external_id'] ) || empty( $payment_data['amount'] ) ) {
 			$error = 'Відсутні обов’язкові поля: external_id або amount';
-			error_log( 'RP_Standard_API ERROR: ' . $error );
+			rp_payparts_log( 'RP_Standard_API ERROR: ' . $error );
 			return new WP_Error( 'missing_fields', $error );
 		}
 
@@ -160,22 +160,22 @@ class RP_Standard_API {
 		$result = $this->send_post_request( '/payments/v1/new', $normalized_data );
 
 		if ( ! $result['success'] ) {
-			error_log( 'RP_Standard_API: ❌ Помилка створення платежу: ' . $result['error'] );
+			rp_payparts_log( 'RP_Standard_API: ❌ Помилка створення платежу: ' . $result['error'] );
 			return new WP_Error( 'api_error', $result['error'] );
 		}
 
 		$response = $result['response'];
 
 		if ( ! isset( $response['action']['value'] ) || empty( $response['action']['value'] ) ) {
-			error_log( 'RP_Standard_API: ❌ Відсутній URL для редиректу у відповіді API' );
-			error_log( 'RP_Standard_API: Структура відповіді: ' . json_encode( $response ) );
+			rp_payparts_log( 'RP_Standard_API: ❌ Відсутній URL для редиректу у відповіді API' );
+			rp_payparts_log( 'RP_Standard_API: Структура відповіді: ' . wp_json_encode( $response ) );
 			return new WP_Error( 'missing_redirect_url', 'API не повернув URL для оплати' );
 		}
 
 		$payment_url = $response['action']['value'];
 
-		error_log( 'RP_Standard_API: ✅ Платіж успішно створений' );
-		error_log( 'RP_Standard_API: ✅ URL для оплати: ' . $payment_url );
+		rp_payparts_log( 'RP_Standard_API: ✅ Платіж успішно створений' );
+		rp_payparts_log( 'RP_Standard_API: ✅ URL для оплати: ' . $payment_url );
 
 		return array(
 			'success'     => true,
@@ -196,7 +196,7 @@ class RP_Standard_API {
 	 */
 	private function normalize_payment_data( $data ) {
 		if ( empty( $data['external_id'] ) || empty( $data['amount'] ) ) {
-			error_log( 'RP_Standard_API: Відсутні обов’язкові поля' );
+			rp_payparts_log( 'RP_Standard_API: Відсутні обов’язкові поля' );
 			return false;
 		}
 
@@ -233,11 +233,11 @@ class RP_Standard_API {
 
 		// ✅ СПРОЩЕНО: передаємо товари як є (як в офіційному плагіні)
 		if ( isset( $data['products'] ) && is_array( $data['products'] ) && ! empty( $data['products'] ) ) {
-			error_log( 'RozetkaPay API: Products received: ' . json_encode( $data['products'] ) );
+			rp_payparts_log( 'RozetkaPay API: Products received: ' . wp_json_encode( $data['products'] ) );
 			$normalized['products'] = $data['products']; // Передаємо як є, без змін
-			error_log( 'RozetkaPay API: Products passed as-is to API' );
+			rp_payparts_log( 'RozetkaPay API: Products passed as-is to API' );
 		}
-		error_log( 'RP_Standard_API: Фінальні дані: ' . json_encode( $normalized ) );
+		rp_payparts_log( 'RP_Standard_API: Фінальні дані: ' . wp_json_encode( $normalized ) );
 		return $normalized;
 	}
 
@@ -263,7 +263,7 @@ class RP_Standard_API {
 			$clean = 'Оплата замовлення';
 		}
 
-		error_log( "RP_Standard_API: Опис: '" . $clean . "'" );
+		rp_payparts_log( "RP_Standard_API: Опис: '" . $clean . "'" );
 		return $clean;
 	}
 
@@ -318,33 +318,10 @@ class RP_Standard_API {
 		$json = wp_json_encode( $payload, $flags );
 		if ( ! $json ) {
 			$msg = function_exists( 'json_last_error_msg' ) ? json_last_error_msg() : 'json encode error';
-			error_log( 'RP_Standard_API: ❌ Не вдалося закодувати payload у JSON: ' . $msg );
-			// Прагнемо знайти проблемне поле (простий пошук)
-			$offender = $this->find_json_offender( $payload );
-			if ( $offender ) {
-				error_log( 'RP_Standard_API: Проблемний шлях у payload: ' . $offender ); }
+			rp_payparts_log( 'RP_Standard_API: ❌ Не вдалося закодувати payload у JSON: ' . $msg );
 			return false;
 		}
 		return $json;
-	}
-
-	/**
-	 * Діагностика: знаходить шлях до першого значення, яке не кодується в JSON
-	 */
-	private function find_json_offender( $data, $path = '$' ) {
-		if ( is_array( $data ) ) {
-			foreach ( $data as $k => $v ) {
-				$p = $this->find_json_offender( $v, $path . '[' . json_encode( $k ) . ']' );
-				if ( $p ) {
-					return $p; }
-			}
-			return null;
-		}
-		$flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
-		if ( defined( 'JSON_INVALID_UTF8_SUBSTITUTE' ) ) {
-			$flags |= JSON_INVALID_UTF8_SUBSTITUTE; }
-		$ok = json_encode( $data, $flags );
-		return ( $ok === false || $ok === null ) ? ( $path . ' (type=' . gettype( $data ) . ')' ) : null;
 	}
 
 	/**
@@ -366,9 +343,9 @@ class RP_Standard_API {
 			'sslverify'   => true,
 		);
 
-		error_log( 'RP_Standard_API: Відправка запиту на ' . $url );
-		error_log( 'RP_Standard_API: Заголовки: ' . json_encode( $args['headers'] ) );
-		error_log( 'RP_Standard_API: Довжина даних: ' . ( is_string( $args['body'] ) ? strlen( $args['body'] ) : var_export( $args['body'], true ) ) );
+		rp_payparts_log( 'RP_Standard_API: Відправка запиту на ' . $url );
+		rp_payparts_log( 'RP_Standard_API: Заголовки: ' . wp_json_encode( $args['headers'] ) );
+		rp_payparts_log( 'RP_Standard_API: Довжина даних: ' . ( is_string( $args['body'] ) ? strlen( $args['body'] ) : wp_json_encode( $args['body'] ) ) );
 
 		if ( $__json === false ) {
 			return array(
@@ -380,7 +357,7 @@ class RP_Standard_API {
 
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			error_log( 'RP_Standard_API: Помилка WordPress: ' . $error_message );
+			rp_payparts_log( 'RP_Standard_API: Помилка WordPress: ' . $error_message );
 			return array(
 				'success' => false,
 				'error'   => 'Помилка з\'єднання: ' . $error_message,
@@ -390,12 +367,12 @@ class RP_Standard_API {
 		$http_code     = wp_remote_retrieve_response_code( $response );
 		$response_body = wp_remote_retrieve_body( $response );
 
-		error_log( 'RP_Standard_API: HTTP код: ' . $http_code );
-		error_log( 'RP_Standard_API: Відповідь: ' . $response_body );
+		rp_payparts_log( 'RP_Standard_API: HTTP код: ' . $http_code );
+		rp_payparts_log( 'RP_Standard_API: Відповідь: ' . $response_body );
 
 		// Якщо HTTP 500, пробуємо ще раз через 2 секунди
 		if ( $http_code === 500 ) {
-			error_log( 'RP_Standard_API: HTTP 500 - повторна спроба через 2 сек...' );
+			rp_payparts_log( 'RP_Standard_API: HTTP 500 - повторна спроба через 2 сек...' );
 			sleep( 2 );
 
 			if ( $__json === false ) {
@@ -408,14 +385,14 @@ class RP_Standard_API {
 			if ( ! is_wp_error( $response ) ) {
 				$http_code     = wp_remote_retrieve_response_code( $response );
 				$response_body = wp_remote_retrieve_body( $response );
-				error_log( 'RP_Standard_API: Повторний запит - HTTP: ' . $http_code );
+				rp_payparts_log( 'RP_Standard_API: Повторний запит - HTTP: ' . $http_code );
 			}
 		}
 
 		$parsed_response = json_decode( $response_body, true );
 
 		if ( $http_code === 200 ) {
-			error_log( 'RP_Standard_API: ✅ Успішна відповідь' );
+			rp_payparts_log( 'RP_Standard_API: ✅ Успішна відповідь' );
 			return array(
 				'success'  => true,
 				'response' => $parsed_response,
@@ -423,7 +400,7 @@ class RP_Standard_API {
 		}
 
 		$error_message = $this->get_error_message( $http_code, $parsed_response );
-		error_log( 'RP_Standard_API: ❌ Помилка: ' . $error_message );
+		rp_payparts_log( 'RP_Standard_API: ❌ Помилка: ' . $error_message );
 
 		return array(
 			'success'   => false,
@@ -467,7 +444,7 @@ class RP_Standard_API {
 	 * ✅ Повернення платежу
 	 */
 	public function refund_payment( $order_id, $amount, $currency = 'UAH', $reason = '' ) {
-		error_log( 'RP_Standard_API: Ініціація повернення для замовлення ' . $order_id );
+		rp_payparts_log( 'RP_Standard_API: Ініціація повернення для замовлення ' . $order_id );
 
 		$refund_data = array(
 			'external_id' => 'refund-' . $order_id . '-' . time(),
@@ -479,10 +456,10 @@ class RP_Standard_API {
 		$result = $this->send_post_request( '/payments/v1/refund', $refund_data );
 
 		if ( $result['success'] ) {
-			error_log( 'RP_Standard_API: ✅ Повернення успішно ініційовано' );
+			rp_payparts_log( 'RP_Standard_API: ✅ Повернення успішно ініційовано' );
 			return $result['response'];
 		} else {
-			error_log( 'RP_Standard_API: ❌ Помилка повернення: ' . $result['error'] );
+			rp_payparts_log( 'RP_Standard_API: ❌ Помилка повернення: ' . $result['error'] );
 			return new WP_Error( 'refund_error', $result['error'] );
 		}
 	}
@@ -491,7 +468,7 @@ class RP_Standard_API {
 	 * ✅ Отримання інформації про акаунт
 	 */
 	public function get_account_info() {
-		error_log( 'RP_Standard_API: Отримання інформації про акаунт...' );
+		rp_payparts_log( 'RP_Standard_API: Отримання інформації про акаунт...' );
 
 		$url = $this->base_url . '/account/info';
 
@@ -532,17 +509,17 @@ class RP_Standard_API {
 		}
 
 		// Використовуємо основний endpoint для отримання інформації про платіж
-		$result = $this->make_request( 'GET', '/payments/v1/info?external_id=' . urlencode( (string) $external_id ) );
+		$result = $this->make_request( 'GET', '/payments/v1/info?external_id=' . rawurlencode( (string) $external_id ) );
 
 		if ( is_wp_error( $result ) ) {
-			error_log( 'RP_Standard_API: Помилка отримання статусу платежу - ' . $result->get_error_message() );
+			rp_payparts_log( 'RP_Standard_API: Помилка отримання статусу платежу - ' . $result->get_error_message() );
 			return $result;
 		}
 
 		// Перевіряємо наявність інформації про повернення у відповіді
 		if ( isset( $result['refunds'] ) || isset( $result['refund_amount'] ) || isset( $result['refunded'] ) ) {
-			error_log( 'RP_Standard_API: Знайдена інформація про повернення у відповіді API' );
-			error_log( 'RP_Standard_API: Структура відповіді: ' . json_encode( array_keys( $result ) ) );
+			rp_payparts_log( 'RP_Standard_API: Знайдена інформація про повернення у відповіді API' );
+			rp_payparts_log( 'RP_Standard_API: Структура відповіді: ' . wp_json_encode( array_keys( $result ) ) );
 		}
 
 		return $result;
@@ -556,27 +533,27 @@ class RP_Standard_API {
 			return new WP_Error( 'missing_external_id', 'Empty external_id' );
 		}
 
-		error_log( 'RP_Standard_API: Запит інформації про повернення для external_id: ' . $external_id );
+		rp_payparts_log( 'RP_Standard_API: Запит інформації про повернення для external_id: ' . $external_id );
 
 		// Пробуємо декілька можливих endpoints для отримання інформації про повернення
 		$endpoints_to_try = array(
-			'/payments/v1/refunds?external_id=' . urlencode( $external_id ),
-			'/payments/v1/info?external_id=' . urlencode( $external_id ) . '&include_refunds=true',
-			'/refunds/v1/list?external_id=' . urlencode( $external_id ),
-			'/payments/v1/' . urlencode( $external_id ) . '/refunds',
+			'/payments/v1/refunds?external_id=' . rawurlencode( $external_id ),
+			'/payments/v1/info?external_id=' . rawurlencode( $external_id ) . '&include_refunds=true',
+			'/refunds/v1/list?external_id=' . rawurlencode( $external_id ),
+			'/payments/v1/' . rawurlencode( $external_id ) . '/refunds',
 		);
 
 		foreach ( $endpoints_to_try as $endpoint ) {
-			error_log( 'RP_Standard_API: Пробуємо endpoint: ' . $endpoint );
+			rp_payparts_log( 'RP_Standard_API: Пробуємо endpoint: ' . $endpoint );
 
 			$result = $this->make_request( 'GET', $endpoint );
 
 			if ( ! is_wp_error( $result ) && ! empty( $result ) ) {
-				error_log( 'RP_Standard_API: ✅ Успішна відповідь від endpoint: ' . $endpoint );
-				error_log( 'RP_Standard_API: Структура відповіді: ' . json_encode( array_keys( is_array( $result ) ? $result : array() ) ) );
+				rp_payparts_log( 'RP_Standard_API: ✅ Успішна відповідь від endpoint: ' . $endpoint );
+				rp_payparts_log( 'RP_Standard_API: Структура відповіді: ' . wp_json_encode( array_keys( is_array( $result ) ? $result : array() ) ) );
 				return $result;
 			} else {
-				error_log( 'RP_Standard_API: ❌ Endpoint не спрацював: ' . $endpoint . ( is_wp_error( $result ) ? ' - ' . $result->get_error_message() : '' ) );
+				rp_payparts_log( 'RP_Standard_API: ❌ Endpoint не спрацював: ' . $endpoint . ( is_wp_error( $result ) ? ' - ' . $result->get_error_message() : '' ) );
 			}
 		}
 
@@ -608,13 +585,13 @@ class RP_Standard_API {
 			}
 
 			if ( ! empty( $refund_data ) ) {
-				error_log( 'RP_Standard_API: ✅ Знайдена інформація про повернення в основній відповіді' );
-				error_log( 'RP_Standard_API: Дані про повернення: ' . json_encode( $refund_data ) );
+				rp_payparts_log( 'RP_Standard_API: ✅ Знайдена інформація про повернення в основній відповіді' );
+				rp_payparts_log( 'RP_Standard_API: Дані про повернення: ' . wp_json_encode( $refund_data ) );
 				return $refund_data;
 			}
 		}
 
-		error_log( 'RP_Standard_API: ❌ Не вдалося отримати інформацію про повернення' );
+		rp_payparts_log( 'RP_Standard_API: ❌ Не вдалося отримати інформацію про повернення' );
 		return new WP_Error( 'no_refund_info', 'Не вдалося отримати інформацію про повернення для цього платежу' );
 	}
 
@@ -665,7 +642,7 @@ class RP_Standard_API {
 	 * ✅ Підтвердження двоетапного платежу
 	 */
 	public function confirm_payment( $payment_id, $amount = null ) {
-		error_log( 'RP_Standard_API: Підтвердження платежу ' . $payment_id );
+		rp_payparts_log( 'RP_Standard_API: Підтвердження платежу ' . $payment_id );
 
 		$confirm_data = array(
 			'action' => 'confirm',
@@ -675,13 +652,13 @@ class RP_Standard_API {
 			$confirm_data['amount'] = floatval( $amount );
 		}
 
-		$result = $this->send_post_request( '/payments/v1/' . urlencode( $payment_id ) . '/confirm', $confirm_data );
+		$result = $this->send_post_request( '/payments/v1/' . rawurlencode( $payment_id ) . '/confirm', $confirm_data );
 
 		if ( $result['success'] ) {
-			error_log( 'RP_Standard_API: ✅ Платіж успішно підтверджений' );
+			rp_payparts_log( 'RP_Standard_API: ✅ Платіж успішно підтверджений' );
 			return $result['response'];
 		} else {
-			error_log( 'RP_Standard_API: ❌ Помилка підтвердження платежу: ' . $result['error'] );
+			rp_payparts_log( 'RP_Standard_API: ❌ Помилка підтвердження платежу: ' . $result['error'] );
 			return new WP_Error( 'confirm_error', $result['error'] );
 		}
 	}
@@ -690,19 +667,19 @@ class RP_Standard_API {
 	 * ✅ Скасування зарезервованого платежу
 	 */
 	public function cancel_payment( $payment_id ) {
-		error_log( 'RP_Standard_API: Скасування платежу ' . $payment_id );
+		rp_payparts_log( 'RP_Standard_API: Скасування платежу ' . $payment_id );
 
 		$cancel_data = array(
 			'action' => 'cancel',
 		);
 
-		$result = $this->send_post_request( '/payments/v1/' . urlencode( $payment_id ) . '/cancel', $cancel_data );
+		$result = $this->send_post_request( '/payments/v1/' . rawurlencode( $payment_id ) . '/cancel', $cancel_data );
 
 		if ( $result['success'] ) {
-			error_log( 'RP_Standard_API: ✅ Платіж успішно скасовано' );
+			rp_payparts_log( 'RP_Standard_API: ✅ Платіж успішно скасовано' );
 			return $result['response'];
 		} else {
-			error_log( 'RP_Standard_API: ❌ Помилка скасування платежу: ' . $result['error'] );
+			rp_payparts_log( 'RP_Standard_API: ❌ Помилка скасування платежу: ' . $result['error'] );
 			return new WP_Error( 'cancel_error', $result['error'] );
 		}
 	}
@@ -720,7 +697,7 @@ class RP_Standard_API {
 
 		foreach ( $required_fields as $field ) {
 			if ( ! isset( $data[ $field ] ) || empty( $data[ $field ] ) ) {
-				error_log( 'RP_Standard_API: Відсутнє обов’язкове поле в callback: ' . $field );
+				rp_payparts_log( 'RP_Standard_API: Відсутнє обов’язкове поле в callback: ' . $field );
 				return false;
 			}
 		}
@@ -728,7 +705,7 @@ class RP_Standard_API {
 		// Перевіряємо валідність статусу
 		$valid_statuses = array( 'success', 'failure', 'processing', 'pending', 'cancelled' );
 		if ( ! in_array( $data['status'], $valid_statuses ) ) {
-			error_log( 'RP_Standard_API: Невірний статус у callback: ' . $data['status'] );
+			rp_payparts_log( 'RP_Standard_API: Невірний статус у callback: ' . $data['status'] );
 			return false;
 		}
 
@@ -749,9 +726,9 @@ class RP_Standard_API {
 
 		$log_message = '[' . strtoupper( $level ) . '] ' . $message;
 		if ( ! empty( $context ) ) {
-			$log_message .= ' | Context: ' . json_encode( $context );
+			$log_message .= ' | Context: ' . wp_json_encode( $context );
 		}
 
-		error_log( 'RP_Standard_API: ' . $log_message );
+		rp_payparts_log( 'RP_Standard_API: ' . $log_message );
 	}
 }

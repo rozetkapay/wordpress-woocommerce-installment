@@ -30,7 +30,7 @@ class RP_Payparts_Banks_Page {
 	protected static function fetch_banks( $login, $password, $include_fees = null ) {
 		$url = 'https://api.rozetkapay.com/api/payparts/v1/banks/info';
 		if ( ! empty( $include_fees ) ) {
-			$url .= ( strpos( $url, '?' ) === false ? '?' : '&' ) . 'include_fees=' . urlencode( $include_fees );
+			$url .= ( strpos( $url, '?' ) === false ? '?' : '&' ) . 'include_fees=' . rawurlencode( $include_fees );
 		}
 
 		$auth = base64_encode( $login . ':' . $password );
@@ -107,9 +107,16 @@ class RP_Payparts_Banks_Page {
 		$login    = $settings['api_user'] ?? '';
 		$password = $settings['api_pass'] ?? '';
 
-		$amount       = isset( $_GET['amount'] ) ? floatval( $_GET['amount'] ) : null;
-		$term         = isset( $_GET['term'] ) ? intval( $_GET['term'] ) : null;
-		$include_fees = isset( $_GET['include_fees'] ) ? sanitize_text_field( wp_unslash( $_GET['include_fees'] ) ) : null;
+		$amount       = null;
+		$term         = null;
+		$include_fees = null;
+
+		$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+		if ( wp_verify_nonce( $nonce, 'rp_payparts_banks_filter' ) ) {
+			$amount       = isset( $_GET['amount'] ) ? floatval( wp_unslash( $_GET['amount'] ) ) : null;
+			$term         = isset( $_GET['term'] ) ? intval( wp_unslash( $_GET['term'] ) ) : null;
+			$include_fees = isset( $_GET['include_fees'] ) ? sanitize_text_field( wp_unslash( $_GET['include_fees'] ) ) : null;
+		}
 
 		$banks = array();
 		$error = null;
@@ -132,6 +139,7 @@ class RP_Payparts_Banks_Page {
 
 			<form method="get" style="margin:16px 0;">
 				<input type="hidden" name="page" value="rp-payparts-banks"/>
+				<?php wp_nonce_field( 'rp_payparts_banks_filter' ); ?>
 				<label>
 					Сума (UAH):
 					<input type="number" step="0.01" name="amount" value="<?php echo esc_attr( $amount ); ?>" style="width:140px;">

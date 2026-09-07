@@ -114,25 +114,6 @@ if ( ! function_exists( 'rp_payparts_format_currency' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_log' ) ) {
-	/**
-	 * Логування подій плагіна
-	 *
-	 * @param string $message Повідомлення для лога
-	 * @param string $level Рівень лога (info, warning, error)
-	 */
-	function rp_payparts_log( $message, $level = 'info' ) {
-		if ( ! WP_DEBUG_LOG ) {
-			return;
-		}
-
-		$timestamp   = current_time( 'Y-m-d H:i:s' );
-		$log_message = sprintf( '[%s] [RozetkaPay Payparts] [%s] %s', $timestamp, strtoupper( $level ), $message );
-
-		error_log( $log_message );
-	}
-}
-
 if ( ! function_exists( 'rp_payparts_is_plugin_active' ) ) {
 	/**
 	 * Перевірити, чи активний плагін
@@ -160,14 +141,14 @@ if ( ! function_exists( 'rp_payparts_get_gateway' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_get_payment_method_type' ) ) {
+if ( ! function_exists( 'rp_payparts_get_payment_method_type' ) ) {
 	/**
 	 * Визначити тип методу оплати за замовленням – НОВА ФУНКЦІЯ
 	 *
 	 * @param WC_Order $order Замовлення
 	 * @return string|null Тип методу ('payparts' або 'standard')
 	 */
-	function rp_get_payment_method_type( $order ) {
+	function rp_payparts_get_payment_method_type( $order ) {
 		if ( ! $order ) {
 			return null;
 		}
@@ -185,14 +166,14 @@ if ( ! function_exists( 'rp_get_payment_method_type' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_get_payment_method_title' ) ) {
+if ( ! function_exists( 'rp_payparts_get_payment_method_title' ) ) {
 	/**
 	 * Отримати назву методу оплати – НОВА ФУНКЦІЯ
 	 *
 	 * @param string $method Тип методу ('payparts' або 'standard')
 	 * @return string
 	 */
-	function rp_get_payment_method_title( $method ) {
+	function rp_payparts_get_payment_method_title( $method ) {
 		switch ( $method ) {
 			case 'payparts':
 				return __( 'RozetkaPay Оплата частинами', 'rozetkapay-payparts' );
@@ -553,7 +534,7 @@ if ( ! function_exists( 'rp_payparts_debug' ) ) {
 			return;
 		}
 
-		$message = sprintf( '[%s] %s', $context, is_string( $data ) ? $data : print_r( $data, true ) );
+		$message = sprintf( '[%s] %s', $context, is_string( $data ) ? $data : wp_json_encode( $data ) );
 		rp_payparts_log( $message, 'debug' );
 	}
 }
@@ -682,8 +663,8 @@ if ( ! shortcode_exists( 'rp_payparts_widget' ) ) {
 }
 
 // === Added: reference helpers ===
-if ( ! function_exists( 'rp_build_reference' ) ) {
-	function rp_build_reference( WC_Order $order, $prefix = 'roz1', $sep = '-' ) {
+if ( ! function_exists( 'rp_payparts_build_reference' ) ) {
+	function rp_payparts_build_reference( WC_Order $order, $prefix = 'roz1', $sep = '-' ) {
 		$number = method_exists( $order, 'get_order_number' ) ? $order->get_order_number() : $order->get_id();
 		$prefix = trim( (string) $prefix );
 		$sep    = (string) $sep;
@@ -694,8 +675,8 @@ if ( ! function_exists( 'rp_build_reference' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_find_order_by_reference' ) ) {
-	function rp_find_order_by_reference( $reference ) {
+if ( ! function_exists( 'rp_payparts_find_order_by_reference' ) ) {
+	function rp_payparts_find_order_by_reference( $reference ) {
 		$orders = wc_get_orders(
 			array(
 				'meta_key'   => '_rp_reference',

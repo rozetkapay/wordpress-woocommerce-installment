@@ -68,13 +68,13 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			add_action( 'wp_ajax_rp_test_api_connection', array( $this, 'ajax_test_api_connection' ) );
 			add_action( 'wp_ajax_rp_test_callback_processing', array( $this, 'ajax_test_callback_processing' ) );
 			add_action( 'wp_ajax_rp_check_payment_status', array( $this, 'ajax_check_payment_status' ) );
-			error_log( 'RozetkaPay: AJAX handlers registered in constructor' );
+			rp_payparts_log( 'RozetkaPay: AJAX handlers registered in constructor' );
 		}
 
 		// Міграція старих налаштувань
 		$this->migrate_old_settings();
 
-		error_log( 'RozetkaPay Gateway: Constructor completed' );
+		rp_payparts_log( 'RozetkaPay Gateway: Constructor completed' );
 	}
 
 	/**
@@ -97,7 +97,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			if ( isset( $settings[ $field ] ) ) {
 				unset( $settings[ $field ] );
 				$updated = true;
-				error_log( 'RozetkaPay: Removed deprecated setting: ' . $field );
+				rp_payparts_log( 'RozetkaPay: Removed deprecated setting: ' . $field );
 			}
 		}
 
@@ -121,9 +121,9 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 					$this->api_user,
 					$this->api_pass
 				);
-				error_log( 'RozetkaPay: API-клієнт ініціалізовано' );
+				rp_payparts_log( 'RozetkaPay: API-клієнт ініціалізовано' );
 			} else {
-				error_log( 'RozetkaPay: Не вдалося завантажити клас RP_Standard_API' );
+				rp_payparts_log( 'RozetkaPay: Не вдалося завантажити клас RP_Standard_API' );
 			}
 		}
 	}
@@ -208,31 +208,31 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 	 * ОНОВЛЕНИЙ метод обробки платежу
 	 */
 	public function process_payment( $order_id ) {
-		error_log( '=== RozetkaPay: process_payment started for order ' . $order_id . ' ===' );
+		rp_payparts_log( '=== RozetkaPay: process_payment started for order ' . $order_id . ' ===' );
 
 		$order = wc_get_order( $order_id );
-		if ( function_exists( 'rp_build_reference' ) && $order ) {
-			rp_build_reference( $order, $this->order_ref_prefix ); }
+		if ( function_exists( 'rp_payparts_build_reference' ) && $order ) {
+			rp_payparts_build_reference( $order, $this->order_ref_prefix ); }
 
 		if ( ! $order ) {
-			error_log( 'RozetkaPay: Order not found: ' . $order_id );
+			rp_payparts_log( 'RozetkaPay: Order not found: ' . $order_id );
 			wc_add_notice( 'Помилка отримання замовлення.', 'error' );
 			return array( 'result' => 'fail' );
 		}
 
 		try {
 			if ( empty( $this->api_user ) || empty( $this->api_pass ) ) {
-				error_log( 'RozetkaPay: API keys not configured' );
+				rp_payparts_log( 'RozetkaPay: API keys not configured' );
 				wc_add_notice( 'Помилка конфігурації платіжного методу. Зверніться до адміністратора.', 'error' );
 				return array( 'result' => 'fail' );
 			}
 
 			if ( ! $this->api_client ) {
-				error_log( 'RozetkaPay: API client not initialized, trying to initialize...' );
+				rp_payparts_log( 'RozetkaPay: API client not initialized, trying to initialize...' );
 				$this->init_api_client();
 
 				if ( ! $this->api_client ) {
-					error_log( 'RozetkaPay: Failed to initialize API client' );
+					rp_payparts_log( 'RozetkaPay: Failed to initialize API client' );
 					wc_add_notice( 'Помилка ініціалізації платіжної системи.', 'error' );
 					return array( 'result' => 'fail' );
 				}
@@ -241,18 +241,18 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			$payment_data = $this->prepare_payment_data( $order );
 
 			if ( ! $payment_data ) {
-				error_log( 'RozetkaPay: Failed to prepare payment data' );
+				rp_payparts_log( 'RozetkaPay: Failed to prepare payment data' );
 				wc_add_notice( 'Помилка підготовки даних платежу.', 'error' );
 				return array( 'result' => 'fail' );
 			}
 
-			error_log( 'RozetkaPay: Payment data prepared: ' . json_encode( $payment_data ) );
+			rp_payparts_log( 'RozetkaPay: Payment data prepared: ' . wp_json_encode( $payment_data ) );
 
 			$payment_result = $this->api_client->create_payment( $payment_data );
 
 			if ( is_wp_error( $payment_result ) ) {
 				$error_message = $payment_result->get_error_message();
-				error_log( 'RozetkaPay: Payment creation failed: ' . $error_message );
+				rp_payparts_log( 'RozetkaPay: Payment creation failed: ' . $error_message );
 
 				$user_message = $this->get_user_friendly_error_message( $error_message );
 				wc_add_notice( $user_message, 'error' );
@@ -260,13 +260,13 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			}
 
 			if ( ! isset( $payment_result['success'] ) || ! $payment_result['success'] ) {
-				error_log( 'RozetkaPay: Payment creation unsuccessful: ' . json_encode( $payment_result ) );
+				rp_payparts_log( 'RozetkaPay: Payment creation unsuccessful: ' . wp_json_encode( $payment_result ) );
 				wc_add_notice( 'Не вдалося створити платіж. Спробуйте ще раз.', 'error' );
 				return array( 'result' => 'fail' );
 			}
 
 			if ( empty( $payment_result['payment_url'] ) ) {
-				error_log( 'RozetkaPay: No payment URL in response: ' . json_encode( $payment_result ) );
+				rp_payparts_log( 'RozetkaPay: No payment URL in response: ' . wp_json_encode( $payment_result ) );
 				wc_add_notice( 'Не отримано посилання для оплати.', 'error' );
 				return array( 'result' => 'fail' );
 			}
@@ -278,8 +278,8 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			// щоб find_order_by_callback_data знаходив замовлення незалежно від ключа
 			$ext_id = $order->get_meta( '_rp_reference', true );
 			if ( empty( $ext_id ) ) {
-				$ext_id = function_exists( 'rp_build_reference' )
-					? rp_build_reference( $order, $this->order_ref_prefix )
+				$ext_id = function_exists( 'rp_payparts_build_reference' )
+					? rp_payparts_build_reference( $order, $this->order_ref_prefix )
 					: (string) $order->get_order_number();
 			}
 			$order->update_meta_data( '_rp_reference', $ext_id );
@@ -287,7 +287,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			$order->update_meta_data( '_rozetkapay_payment_id', $payment_id );
 			$order->update_meta_data( '_rozetkapay_payment_url', $payment_url );
 
-			error_log( 'RozetkaPay Standard: payment created. ID=' . $payment_id . ' ext=' . $ext_id );
+			rp_payparts_log( 'RozetkaPay Standard: payment created. ID=' . $payment_id . ' ext=' . $ext_id );
 
 			$order->update_status( 'pending', __( 'Очікується оплата через RozetkaPay.', 'rozetkapay-payparts' ) );
 			$order->save();
@@ -309,8 +309,8 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			);
 
 		} catch ( Exception $e ) {
-			error_log( 'RozetkaPay: Exception in process_payment: ' . $e->getMessage() );
-			error_log( 'RozetkaPay: Exception trace: ' . $e->getTraceAsString() );
+			rp_payparts_log( 'RozetkaPay: Exception in process_payment: ' . $e->getMessage() );
+			rp_payparts_log( 'RozetkaPay: Exception trace: ' . $e->getTraceAsString() );
 
 			wc_add_notice( 'Виникла помилка при обробці платежу. Спробуйте ще раз.', 'error' );
 			return array( 'result' => 'fail' );
@@ -323,26 +323,26 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 	public function handle_callback() {
 		$payload = file_get_contents( 'php://input' );
 
-		error_log( 'RozetkaPay Callback received: ' . $payload );
+		rp_payparts_log( 'RozetkaPay Callback received: ' . $payload );
 
 		if ( empty( $payload ) ) {
-			error_log( 'RozetkaPay: Empty callback payload received' );
+			rp_payparts_log( 'RozetkaPay: Empty callback payload received' );
 			status_header( 400 );
 			exit( 'Empty payload' );
 		}
 
 		$data = json_decode( $payload, true );
 		if ( ! $data ) {
-			error_log( 'RozetkaPay: Invalid JSON in callback: ' . $payload );
+			rp_payparts_log( 'RozetkaPay: Invalid JSON in callback: ' . $payload );
 			status_header( 400 );
 			exit( 'Invalid JSON' );
 		}
 
-		error_log( 'RozetkaPay: Parsed callback data: ' . json_encode( $data, JSON_UNESCAPED_UNICODE ) );
+		rp_payparts_log( 'RozetkaPay: Parsed callback data: ' . wp_json_encode( $data, JSON_UNESCAPED_UNICODE ) );
 
 		// Базова перевірка обовʼязкових полів
 		if ( empty( $data['id'] ) ) {
-			error_log( 'RozetkaPay: Missing payment ID in callback. Data: ' . json_encode( $data ) );
+			rp_payparts_log( 'RozetkaPay: Missing payment ID in callback. Data: ' . wp_json_encode( $data ) );
 			status_header( 400 );
 			exit( 'Missing payment ID' );
 		}
@@ -352,17 +352,17 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 
 		if ( ! empty( $data['status'] ) ) {
 			$has_status = true;
-			error_log( 'RozetkaPay: Found status in data.status: ' . $data['status'] );
+			rp_payparts_log( 'RozetkaPay: Found status in data.status: ' . $data['status'] );
 		} elseif ( ! empty( $data['details'] ) && ! empty( $data['details']['status'] ) ) {
 			$has_status = true;
-			error_log( 'RozetkaPay: Found status in data.details.status: ' . $data['details']['status'] );
+			rp_payparts_log( 'RozetkaPay: Found status in data.details.status: ' . $data['details']['status'] );
 		} elseif ( isset( $data['is_success'] ) ) {
 			$has_status = true;
-			error_log( 'RozetkaPay: Found is_success flag: ' . var_export( $data['is_success'], true ) );
+			rp_payparts_log( 'RozetkaPay: Found is_success flag: ' . wp_json_encode( $data['is_success'] ) );
 		}
 
 		if ( ! $has_status ) {
-			error_log( 'RozetkaPay: Missing status information in callback. Data: ' . json_encode( $data ) );
+			rp_payparts_log( 'RozetkaPay: Missing status information in callback. Data: ' . wp_json_encode( $data ) );
 			status_header( 400 );
 			exit( 'Missing status information' );
 		}
@@ -379,13 +379,13 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 	 */
 	private function process_callback_data( $data ) {
 		try {
-			error_log( 'RozetkaPay: Processing callback data: ' . json_encode( $data ) );
+			rp_payparts_log( 'RozetkaPay: Processing callback data: ' . wp_json_encode( $data ) );
 
 			// Знайти замовлення по external_id або payment_id
 			$order = $this->find_order_by_callback_data( $data );
 
 			if ( ! $order ) {
-				error_log( 'RozetkaPay: Order not found for callback data' );
+				rp_payparts_log( 'RozetkaPay: Order not found for callback data' );
 				return;
 			}
 
@@ -404,7 +404,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			);
 
 		} catch ( Exception $e ) {
-			error_log( 'RozetkaPay: Exception processing callback: ' . $e->getMessage() );
+			rp_payparts_log( 'RozetkaPay: Exception processing callback: ' . $e->getMessage() );
 		}
 	}
 
@@ -424,7 +424,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 				)
 			);
 			if ( ! empty( $orders ) ) {
-				error_log( 'RozetkaPay Callback: order found by _rozetkapay_payment_id=' . $data['id'] );
+				rp_payparts_log( 'RozetkaPay Callback: order found by _rozetkapay_payment_id=' . $data['id'] );
 				return $orders[0];
 			}
 		}
@@ -443,7 +443,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 				)
 			);
 			if ( ! empty( $orders ) ) {
-				error_log( 'RozetkaPay Callback: order found by _rp_reference=' . $ext_id );
+				rp_payparts_log( 'RozetkaPay Callback: order found by _rp_reference=' . $ext_id );
 				return $orders[0];
 			}
 
@@ -457,7 +457,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 				)
 			);
 			if ( ! empty( $orders ) ) {
-				error_log( 'RozetkaPay Callback: order found by _rozetkapay_external_id=' . $ext_id );
+				rp_payparts_log( 'RozetkaPay Callback: order found by _rozetkapay_external_id=' . $ext_id );
 				return $orders[0];
 			}
 
@@ -465,13 +465,13 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			if ( preg_match( '/(\d+)/', $ext_id, $m ) ) {
 				$order = wc_get_order( intval( $m[1] ) );
 				if ( $order && $order->get_payment_method() === $this->id ) {
-					error_log( 'RozetkaPay Callback: order found by numeric ID=' . $m[1] );
+					rp_payparts_log( 'RozetkaPay Callback: order found by numeric ID=' . $m[1] );
 					return $order;
 				}
 			}
 		}
 
-		error_log( 'RozetkaPay Callback: order NOT found. id=' . ( $data['id'] ?? '' ) . ' external_id=' . ( $data['external_id'] ?? '' ) );
+		rp_payparts_log( 'RozetkaPay Callback: order NOT found. id=' . ( $data['id'] ?? '' ) . ' external_id=' . ( $data['external_id'] ?? '' ) );
 		return null;
 	}
 
@@ -491,16 +491,16 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			$payment_status = $data['details']['status'];
 			$status_code    = $data['details']['status_code'] ?? '';
 			$receipt_number = $data['details']['rrn'] ?? '';
-			error_log( 'RozetkaPay: Status from details: ' . $payment_status );
+			rp_payparts_log( 'RozetkaPay: Status from details: ' . $payment_status );
 		} elseif ( ! empty( $data['status'] ) ) {
 			$payment_status = $data['status'];
-			error_log( 'RozetkaPay: Status from root: ' . $payment_status );
+			rp_payparts_log( 'RozetkaPay: Status from root: ' . $payment_status );
 		} elseif ( $is_success !== null ) {
 			$payment_status = $is_success ? 'success' : 'failure';
-			error_log( 'RozetkaPay: Status from is_success: ' . $payment_status );
+			rp_payparts_log( 'RozetkaPay: Status from is_success: ' . $payment_status );
 		}
 
-		error_log( "RozetkaPay: Processing callback for Order #{$order->get_id()} - Status: {$payment_status}, Status Code: {$status_code}, Receipt: {$receipt_number}, is_success: " . var_export( $is_success, true ) );
+		rp_payparts_log( "RozetkaPay: Processing callback for Order #{$order->get_id()} - Status: {$payment_status}, Status Code: {$status_code}, Receipt: {$receipt_number}, is_success: " . wp_json_encode( $is_success ) );
 
 		// Оновлюємо мета-дані замовлення
 		if ( ! empty( $receipt_number ) ) {
@@ -527,7 +527,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 						$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 					}
 					$order->add_order_note( $note );
-					error_log( "RozetkaPay: Order #{$order->get_id()} marked as paid - status: {$payment_status}" );
+					rp_payparts_log( "RozetkaPay: Order #{$order->get_id()} marked as paid - status: {$payment_status}" );
 				}
 				break;
 
@@ -547,7 +547,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 						$note .= sprintf( __( ' | Код: %s', 'rozetkapay-payparts' ), $status_code );
 					}
 					$order->update_status( 'refunded', $note );
-					error_log( "RozetkaPay: Order #{$order->get_id()} marked as refunded - status: {$payment_status}" );
+					rp_payparts_log( "RozetkaPay: Order #{$order->get_id()} marked as refunded - status: {$payment_status}" );
 				}
 				break;
 
@@ -567,7 +567,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 					$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 				}
 				$order->update_status( 'failed', $note );
-				error_log( "RozetkaPay: Order #{$order->get_id()} marked as failed - status: {$payment_status}, code: {$status_code}" );
+				rp_payparts_log( "RozetkaPay: Order #{$order->get_id()} marked as failed - status: {$payment_status}, code: {$status_code}" );
 				break;
 
 			case 'cancelled':
@@ -579,7 +579,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 					$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 				}
 				$order->update_status( 'cancelled', $note );
-				error_log( "RozetkaPay: Order #{$order->get_id()} marked as cancelled" );
+				rp_payparts_log( "RozetkaPay: Order #{$order->get_id()} marked as cancelled" );
 				break;
 
 			case 'pending':
@@ -592,12 +592,12 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 						$note .= sprintf( __( ' | Квитанція №: %s', 'rozetkapay-payparts' ), $receipt_number );
 					}
 					$order->update_status( 'on-hold', $note );
-					error_log( "RozetkaPay: Order #{$order->get_id()} marked as on-hold - pending payment" );
+					rp_payparts_log( "RozetkaPay: Order #{$order->get_id()} marked as on-hold - pending payment" );
 				}
 				break;
 
 			default:
-				error_log( 'RozetkaPay: Unknown payment status: ' . $payment_status );
+				rp_payparts_log( 'RozetkaPay: Unknown payment status: ' . $payment_status );
 
 				// Якщо статус невідомий, але is_success = false
 				if ( $is_success === false ) {
@@ -608,7 +608,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 						$note .= sprintf( __( ' | Код помилки: %s', 'rozetkapay-payparts' ), $status_code );
 					}
 					$order->update_status( 'failed', $note );
-					error_log( "RozetkaPay: Order #{$order->get_id()} marked as failed based on is_success=false" );
+					rp_payparts_log( "RozetkaPay: Order #{$order->get_id()} marked as failed based on is_success=false" );
 				} elseif ( $is_success === true ) {
 					// Якщо is_success = true, позначаємо як оплачений
 					if ( ! $order->is_paid() ) {
@@ -620,7 +620,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 							$note .= sprintf( __( ' | Код: %s', 'rozetkapay-payparts' ), $status_code );
 						}
 						$order->add_order_note( $note );
-						error_log( "RozetkaPay: Order #{$order->get_id()} marked as paid based on is_success=true" );
+						rp_payparts_log( "RozetkaPay: Order #{$order->get_id()} marked as paid based on is_success=true" );
 					}
 				} else {
 					// Додаємо примітку з невідомим статусом
@@ -631,7 +631,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 						$note .= sprintf( __( ' | Код: %s', 'rozetkapay-payparts' ), $status_code );
 					}
 					$order->add_order_note( $note );
-					error_log( "RozetkaPay: Added note for unknown status: {$payment_status}" );
+					rp_payparts_log( "RozetkaPay: Added note for unknown status: {$payment_status}" );
 				}
 				break;
 		}
@@ -647,7 +647,7 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 
 		try {
 			$payment_data = array(
-				'external_id'  => ( function_exists( 'rp_build_reference' ) ? rp_build_reference( $order, $this->order_ref_prefix ) : ( method_exists( $order, 'get_order_number' ) ? (string) $order->get_order_number() : (string) $order->get_id() ) ),
+				'external_id'  => ( function_exists( 'rp_payparts_build_reference' ) ? rp_payparts_build_reference( $order, $this->order_ref_prefix ) : ( method_exists( $order, 'get_order_number' ) ? (string) $order->get_order_number() : (string) $order->get_id() ) ),
 				'amount'       => floatval( $order->get_total() ),
 				'currency'     => $order->get_currency(),
 				'description'  => $this->get_payment_description( $order ),
@@ -665,14 +665,14 @@ class RP_Standard_Gateway extends WC_Payment_Gateway {
 			if ( ! empty( $products_data ) ) {
 				$payment_data['products'] = $products_data;
 				if ( $this->debug_mode ) {
-					error_log( 'RozetkaPay Standard: products count=' . count( $products_data ) );
+					rp_payparts_log( 'RozetkaPay Standard: products count=' . count( $products_data ) );
 				}
 			}
 
 			return $payment_data;
 
 		} catch ( Exception $e ) {
-			error_log( 'RozetkaPay: Error preparing payment data: ' . $e->getMessage() );
+			rp_payparts_log( 'RozetkaPay: Error preparing payment data: ' . $e->getMessage() );
 			return false;
 		}
 	}
@@ -1037,15 +1037,15 @@ JS;
 	}
 
 	public function ajax_test_api_connection() {
-		error_log( 'RozetkaPay: AJAX ajax_test_api_connection called' );
+		rp_payparts_log( 'RozetkaPay: AJAX ajax_test_api_connection called' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			error_log( 'RozetkaPay: User lacks manage_woocommerce capability' );
+			rp_payparts_log( 'RozetkaPay: User lacks manage_woocommerce capability' );
 			wp_send_json_error( array( 'message' => 'Недостатньо прав доступу' ) );
 		}
 
 		if ( ! isset( $_POST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['security'] ) ), 'rp_test_api' ) ) {
-			error_log( 'RozetkaPay: Nonce verification failed' );
+			rp_payparts_log( 'RozetkaPay: Nonce verification failed' );
 			wp_send_json_error( array( 'message' => 'Помилка безпеки (nonce)' ) );
 		}
 
@@ -1158,7 +1158,7 @@ JS;
 		$external_id = $order->get_meta( '_rozetkapay_external_id' );
 
 		if ( empty( $payment_id ) && empty( $external_id ) ) {
-			error_log( 'RozetkaPay: No payment ID or external ID for order ' . $order_id );
+			rp_payparts_log( 'RozetkaPay: No payment ID or external ID for order ' . $order_id );
 			return false;
 		}
 
@@ -1167,7 +1167,7 @@ JS;
 		}
 
 		if ( ! $this->api_client ) {
-			error_log( 'RozetkaPay: API client not available for status check' );
+			rp_payparts_log( 'RozetkaPay: API client not available for status check' );
 			return false;
 		}
 
@@ -1176,7 +1176,7 @@ JS;
 			$status_result = $this->api_client->get_payment_status( $identifier );
 
 			if ( is_wp_error( $status_result ) ) {
-				error_log( 'RozetkaPay: Error getting payment status: ' . $status_result->get_error_message() );
+				rp_payparts_log( 'RozetkaPay: Error getting payment status: ' . $status_result->get_error_message() );
 				return false;
 			}
 
@@ -1185,7 +1185,7 @@ JS;
 			return $status_result;
 
 		} catch ( Exception $e ) {
-			error_log( 'RozetkaPay: Exception checking payment status: ' . $e->getMessage() );
+			rp_payparts_log( 'RozetkaPay: Exception checking payment status: ' . $e->getMessage() );
 			return false;
 		}
 	}
@@ -1203,8 +1203,8 @@ JS;
 			return new WP_Error( 'invalid_order', 'Order not found' );
 		}
 		$external_id = $order->get_meta( '_rozetkapay_external_id', true );
-		if ( ! $external_id && function_exists( 'rp_build_reference' ) ) {
-			$external_id = rp_build_reference( $order, $this->order_ref_prefix );
+		if ( ! $external_id && function_exists( 'rp_payparts_build_reference' ) ) {
+			$external_id = rp_payparts_build_reference( $order, $this->order_ref_prefix );
 		}
 		if ( $amount === null ) {
 			$amount = floatval( $order->get_total() ) - floatval( $order->get_total_refunded() );
