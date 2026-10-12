@@ -1,3 +1,4 @@
 /vendor/
 phpcs.xml
 .cursor
+.vscode

@@ -33,7 +33,6 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	public $display_style;
 	public $debug_mode;
 	public $auto_redirect;
-	public $auto_confirm;
 
 	public function __construct() {
 		$this->id                 = 'rp_payparts';
@@ -67,7 +66,6 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		$this->max_amount    = floatval( $this->get_option( 'max_amount', 0 ) );
 		$this->allowed_banks = array_filter( array_map( 'trim', explode( ',', $this->get_option( 'allowed_banks', '' ) ) ) );
 		$this->allowed_terms = array_filter( array_map( 'intval', explode( ',', $this->get_option( 'allowed_terms', '' ) ) ) );
-		$this->auto_confirm  = $this->get_option( 'auto_confirm', 'no' );
 
 		// Email налаштування
 		$this->send_pending_email = 'yes' === $this->get_option( 'send_pending_email' );
@@ -824,15 +822,6 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				'label'       => __( 'Увімкнути детальне логування в замітки замовлень', 'rozetkapay-payparts' ),
 				'description' => __( 'Включіть для діагностики проблем з перенаправленням та API запитами', 'rozetkapay-payparts' ),
 				'default'     => 'no',
-				'desc_tip'    => true,
-			),
-
-			'auto_confirm'          => array(
-				'title'       => __( 'Автопідтвердження платежу', 'rozetkapay-payparts' ),
-				'type'        => 'checkbox',
-				'label'       => __( 'Автоматично підтверджувати оплату після підписання договору клієнтом', 'rozetkapay-payparts' ),
-				'default'     => 'no',
-				'description' => __( 'Якщо увімкнено, статус у кабінеті RozetkaPay перейде з «Блокування» у «Оплата» без вашого ручного підтвердження.', 'rozetkapay-payparts' ),
 				'desc_tip'    => true,
 			),
 		);
@@ -1746,30 +1735,29 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		}
 
 		return array(
-			'bank_name'                  => $bank_id,
-			'mode'                       => 'direct',
-			'auto_confirm_after_success' => ( $this->auto_confirm === 'yes' ),
-			'external_id'                => function_exists( 'rp_payparts_build_reference' )
+			'bank_name'    => $bank_id,
+			'mode'         => 'direct',
+			'external_id'  => function_exists( 'rp_payparts_build_reference' )
 				? rp_payparts_build_reference( $order, $this->order_ref_prefix )
 				: (string) $order->get_id(),
-			'currency'                   => $order->get_currency(),
-			'parts_count'                => intval( $term ),
-			'amount'                     => $order_total,
-			'description'                => sprintf(
+			'currency'     => $order->get_currency(),
+			'parts_count'  => intval( $term ),
+			'amount'       => $order_total,
+			'description'  => sprintf(
 				// translators: %1$s: order number, %2$s: number of instalment parts.
 				__( 'Оплата замовлення №%1$s на %2$s частин', 'rozetkapay-payparts' ),
 				$order->get_order_number(),
 				$term
 			),
-			'customer'                   => array(
+			'customer'     => array(
 				'first_name' => $order->get_billing_first_name(),
 				'last_name'  => $order->get_billing_last_name(),
 				'email'      => $order->get_billing_email(),
 				'phone'      => $this->format_phone( $order->get_billing_phone() ),
 			),
-			'products'                   => $products,
-			'callback_url'               => home_url( '/wc-api/' . $this->id ),
-			'result_url'                 => $this->get_return_url( $order ),
+			'products'     => $products,
+			'callback_url' => home_url( '/wc-api/' . $this->id ),
+			'result_url'   => $this->get_return_url( $order ),
 		);
 	}
 
