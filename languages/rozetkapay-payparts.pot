@@ -138,18 +138,6 @@ msgstr ""
 msgid "Список термінів в місяцях через кому (залишіть порожнім для всіх доступних термінів):"
 msgstr ""
 
-#: includes/class-gateway.php:157
-msgid "Автопідтвердження платежу"
-msgstr ""
-
-#: includes/class-gateway.php:162
-msgid "Автоматично підтверджувати оплату після підписання договору клієнтом"
-msgstr ""
-
-#: includes/class-gateway.php:163
-msgid "Якщо увімкнено, статус у кабінеті RozetkaPay перейде з «Блокування» у «Оплата» без вашого ручного підтвердження."
-msgstr ""
-
 #: includes/class-gateway.php:168
 msgid "Налаштування відображення"
 msgstr ""

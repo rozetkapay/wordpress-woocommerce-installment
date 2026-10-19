@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="RozetkaPay Payparts" xsi:noNamespaceSchemaLocation="https://schema.phpcodesniffer.com/phpcs.xsd">
+
+    <description>WordPress Coding Standards and PHP 7.4+ compatibility for RozetkaPay Payparts.</description>
+
+    <file>.</file>
+
+    <arg name="extensions" value="php"/>
+    <arg name="basepath" value="."/>
+    <arg name="parallel" value="8"/>
+
+    <exclude-pattern>/vendor/*</exclude-pattern>
+    <exclude-pattern>/.git/*</exclude-pattern>
+    <exclude-pattern>/.vscode/*</exclude-pattern>
+    <exclude-pattern>/languages/*</exclude-pattern>
+    <exclude-pattern>/assets/*</exclude-pattern>
+
+    <rule ref="WordPress"/>
+
+    <config name="minimum_wp_version" value="5.0"/>
+
+    <!-- Налаштування правильного текстового домену -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="rozetkapay-payparts"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Налаштування всіх необхідних префіксів -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="rozetkapay_payparts"/>
+            </property>
+        </properties>
+    </rule>
+
+    <config name="testVersion" value="7.4-"/>
+    <rule ref="PHPCompatibilityWP">
+        <include-pattern>*\.php$</include-pattern>
+    </rule>
+
+</ruleset>

@@ -273,4 +273,74 @@ jQuery(document).ready(function($) {
     });
     
     console.log('RozetkaPay Admin JS ініціалізовано з покращеннями');
+
+    // Швидкі дії на сторінці огляду
+    if ($('#rp-test-connection').length) {
+        var strings = rozetkapayPaypartsAdmin.strings || {};
+
+        $('#rp-test-connection').on('click', function() {
+            var $button = $(this);
+            var $messages = $('#rp-admin-messages');
+            var nonce = $button.data('nonce');
+
+            $button.prop('disabled', true).text(strings.testing || 'Testing...');
+            $messages.html('<div class="rp-admin-notice loading">🔄 ' + (strings.testingApi || '') + '</div>');
+
+            $.ajax({
+                url: rozetkapayPaypartsAdmin.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'rozetkapay_payparts_test_connection',
+                    nonce: nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $messages.html('<div class="rp-admin-notice success">✅ ' + response.data.message + '</div>');
+                        if (response.data.banks_count) {
+                            $messages.append('<div class="rp-admin-notice success">🏦 ' + (strings.banksFound || '') + ' ' + response.data.banks_count + '</div>');
+                        }
+                    } else {
+                        $messages.html('<div class="rp-admin-notice error">❌ ' + response.data + '</div>');
+                    }
+                },
+                error: function() {
+                    $messages.html('<div class="rp-admin-notice error">❌ ' + (strings.connectionError || '') + '</div>');
+                },
+                complete: function() {
+                    $button.prop('disabled', false).text(strings.testApi || '');
+                }
+            });
+        });
+
+        $('#rp-clear-cache').on('click', function() {
+            var $button = $(this);
+            var $messages = $('#rp-admin-messages');
+            var nonce = $button.data('nonce');
+
+            $button.prop('disabled', true).text(strings.clearing || 'Clearing...');
+            $messages.html('<div class="rp-admin-notice loading">🔄 ' + (strings.clearingCache || '') + '</div>');
+
+            $.ajax({
+                url: rozetkapayPaypartsAdmin.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'rozetkapay_payparts_clear_cache',
+                    nonce: nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $messages.html('<div class="rp-admin-notice success">✅ ' + response.data + '</div>');
+                    } else {
+                        $messages.html('<div class="rp-admin-notice error">❌ ' + response.data + '</div>');
+                    }
+                },
+                error: function() {
+                    $messages.html('<div class="rp-admin-notice error">❌ ' + (strings.cacheClearError || '') + '</div>');
+                },
+                complete: function() {
+                    $button.prop('disabled', false).text(strings.clearCache || '');
+                }
+            });
+        });
+    }
 });

@@ -1,13 +1,36 @@
 jQuery(document).ready(function($) {
     console.log('SLIDER: Скрипт завантажено');
+
+    // Якщо логотип банку не завантажився, показуємо скорочену назву банку
+    function showLogoFallback(img) {
+        $(img).closest('.rp-bank-logo').addClass('rp-logo-failed');
+    }
+
+    function checkBankLogos() {
+        $('.rp-bank-logo img').each(function() {
+            if (this.complete && this.naturalWidth === 0) {
+                showLogoFallback(this);
+            }
+        });
+    }
+
+    // Подія error не спливає, тому слухаємо її у фазі перехоплення
+    document.addEventListener('error', function(e) {
+        if (e.target && e.target.tagName === 'IMG' && $(e.target).closest('.rp-bank-logo').length) {
+            showLogoFallback(e.target);
+        }
+    }, true);
+
+    checkBankLogos();
+    $(document.body).on('updated_checkout', checkBankLogos);
     
     setTimeout(function() {
-        if (typeof rozetkapay_slider_data === 'undefined') {
+        if (typeof rozetkapay_payparts_slider_data === 'undefined') {
             console.log('SLIDER: Дані не знайдено');
             return;
         }
         
-        var data = rozetkapay_slider_data;
+        var data = rozetkapay_payparts_slider_data;
         var currentBank = Object.keys(data.banks)[0];
         var $slider = $('#rp-slider-range');
         
@@ -62,7 +85,7 @@ var bankMinPeriods = {
                 // Оновлення елементів
                 var monthsElement = document.querySelector('.rp-slider-months');
                 var paymentElement = document.querySelector('.rp-slider-payment');
-                var hiddenInput = document.querySelector('input[name="rp_payparts_option"]');
+                var hiddenInput = document.querySelector('input[name="rozetkapay_payparts_option"]');
                 
                 if (monthsElement) {
                     monthsElement.textContent = term;
@@ -130,14 +153,12 @@ var bankMinPeriods = {
                 $bankLogo.attr('alt', bankData.name + ' Logo');
                 
                 // Показуємо зображення та ховаємо fallback
-                $bankLogo.show();
-                $bankFallback.hide();
+                $bankLogo.closest('.rp-bank-logo').removeClass('rp-logo-failed');
                 
                 // Обробник помилки завантаження логотипа
                 $bankLogo.off('error').on('error', function() {
                     console.log('SLIDER: Не вдалося завантажити логотип для', bankSlug);
-                    $(this).hide();
-                    $bankFallback.show();
+                    showLogoFallback(this);
                     
                     // Оновлюємо текст fallback
                     var fallbackText = bankData.name.substring(0, 2).toUpperCase();
