@@ -1,7 +1,6 @@
 <?php
 /**
  * Plugin Name: RozetkaPay Payparts for WooCommerce
- * Plugin URI: https://rozetkapay.com/
  * Description: Інтеграція оплати частинами RozetkaPay для WooCommerce
  * Version: 2.1.0
  * Author: RozetkaPay
