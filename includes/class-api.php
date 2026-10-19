@@ -322,20 +322,7 @@ class RozetkaPay_Payparts_API {
 				return false;
 			}
 
-			// Прибираємо можливі префікси з підпису
-			$signature = str_replace( array( 'sha1=', 'SHA1=', 'signature=' ), '', trim( $signature ) );
-
-			// Формула RozetkaPay: signature = base64url_encode( sha1( password + base64url(json_body) + password, true ) )
-			$body_base64url     = rtrim( strtr( base64_encode( $payload ), '+/', '-_' ), '=' );
-			$string_to_sign     = $this->api_pass . $body_base64url . $this->api_pass;
-			$hash_binary        = sha1( $string_to_sign, true );
-			$expected_signature = rtrim( strtr( base64_encode( $hash_binary ), '+/', '-_' ), '=' );
-
-			// Прибираємо можливі відмінності у padding
-			$signature_clean = rtrim( $signature, '=' );
-			$expected_clean  = rtrim( $expected_signature, '=' );
-
-			$is_valid = hash_equals( $expected_clean, $signature_clean );
+			$is_valid = rozetkapay_payparts_verify_callback_signature( $payload, $signature, $this->api_pass );
 
 			if ( $is_valid ) {
 				$this->log_debug(
@@ -346,11 +333,8 @@ class RozetkaPay_Payparts_API {
 				$this->log_error(
 					'PayParts: Callback signature verification failed',
 					array(
-						'source'                => 'rozetkapay-payparts',
-						'expected'              => $expected_clean,
-						'received'              => $signature_clean,
-						'payload_length'        => strlen( $payload ),
-						'string_to_sign_length' => strlen( $string_to_sign ),
+						'source'         => 'rozetkapay-payparts',
+						'payload_length' => strlen( $payload ),
 					)
 				);
 			}

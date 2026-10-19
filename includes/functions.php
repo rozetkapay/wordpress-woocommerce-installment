@@ -103,6 +103,58 @@ if ( ! function_exists( 'rozetkapay_payparts_get_orders_by_meta' ) ) {
 	}
 }
 
+if ( ! function_exists( 'rozetkapay_payparts_get_callback_signature' ) ) {
+	/**
+	 * Отримати підпис callback із заголовків запиту.
+	 *
+	 * @return string Підпис або порожній рядок.
+	 */
+	function rozetkapay_payparts_get_callback_signature() {
+		$headers = array( 'HTTP_X_ROZETKAPAY_SIGNATURE', 'HTTP_X_SIGNATURE', 'HTTP_SIGNATURE' );
+
+		foreach ( $headers as $header ) {
+			if ( ! empty( $_SERVER[ $header ] ) ) {
+				return sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
+			}
+		}
+
+		return '';
+	}
+}
+
+if ( ! function_exists( 'rozetkapay_payparts_verify_callback_signature' ) ) {
+	/**
+	 * Перевірити підпис callback від RozetkaPay.
+	 *
+	 * Формула: base64url( sha1( password + base64url( body ) + password ) ).
+	 * RozetkaPay кодує тіло з padding "=", варіант без padding приймається для сумісності.
+	 *
+	 * @param string $payload   Сире тіло запиту.
+	 * @param string $signature Підпис із заголовка X-ROZETKAPAY-SIGNATURE.
+	 * @param string $password  API-пароль мерчанта.
+	 * @return bool
+	 */
+	function rozetkapay_payparts_verify_callback_signature( $payload, $signature, $password ) {
+		if ( '' === (string) $payload || '' === (string) $signature || '' === (string) $password ) {
+			return false;
+		}
+
+		$signature = str_replace( array( 'sha1=', 'SHA1=', 'signature=' ), '', trim( $signature ) );
+		$signature = rtrim( strtr( $signature, '+/', '-_' ), '=' );
+
+		$encoded_body = strtr( base64_encode( $payload ), '+/', '-_' );
+
+		foreach ( array_unique( array( $encoded_body, rtrim( $encoded_body, '=' ) ) ) as $body ) {
+			$expected = rtrim( strtr( base64_encode( sha1( $password . $body . $password, true ) ), '+/', '-_' ), '=' );
+			if ( hash_equals( $expected, $signature ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+}
+
 if ( ! function_exists( 'rozetkapay_payparts_get_month_declension' ) ) {
 	/**
 	 * Отримати правильне відмінювання слова "місяць"

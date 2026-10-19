@@ -318,7 +318,7 @@ class RozetkaPay_Payparts_Standard_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * СПРОЩЕНИЙ метод обробки callback
+	 * Обробка callback від RozetkaPay
 	 */
 	public function handle_callback() {
 		$payload = file_get_contents( 'php://input' );
@@ -329,6 +329,13 @@ class RozetkaPay_Payparts_Standard_Gateway extends WC_Payment_Gateway {
 			rozetkapay_payparts_log( 'RozetkaPay: Empty callback payload received' );
 			status_header( 400 );
 			exit( 'Empty payload' );
+		}
+
+		$signature = rozetkapay_payparts_get_callback_signature();
+		if ( ! rozetkapay_payparts_verify_callback_signature( $payload, $signature, $this->api_pass ) ) {
+			rozetkapay_payparts_log( 'RozetkaPay: Invalid or missing callback signature', 'warning' );
+			status_header( 403 );
+			exit( 'Invalid signature' );
 		}
 
 		$data = json_decode( $payload, true );
@@ -1115,7 +1122,7 @@ JS;
 		wp_send_json_success(
 			array(
 				'message' => 'Тест обробки callback пройшов успішно!',
-				'details' => 'Callback URL: ' . home_url( '/wc-api/' . $this->id ) . ' | Simplified Security: Enabled',
+				'details' => 'Callback URL: ' . home_url( '/wc-api/' . $this->id ) . ' | Signature verification: Enabled',
 			)
 		);
 	}
