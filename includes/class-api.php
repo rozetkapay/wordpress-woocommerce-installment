@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class RP_Payparts_API {
+class RozetkaPay_Payparts_API {
 	private $api_user;
 	private $api_pass;
 	private $test_mode;
@@ -88,7 +88,7 @@ class RP_Payparts_API {
 		$this->log_debug(
 			sprintf( '%s request to %s', $method, $endpoint ),
 			array(
-				'source' => 'rp-payparts-api',
+				'source' => 'rozetkapay-payparts',
 				'data'   => $data,
 			)
 		);
@@ -98,7 +98,7 @@ class RP_Payparts_API {
 		if ( is_wp_error( $response ) ) {
 			$this->log_error(
 				'HTTP request failed: ' . $response->get_error_message(),
-				array( 'source' => 'rp-payparts-api' )
+				array( 'source' => 'rozetkapay-payparts' )
 			);
 			return $response;
 		}
@@ -109,7 +109,7 @@ class RP_Payparts_API {
 		$this->log_debug(
 			sprintf( 'API response: %d', $code ),
 			array(
-				'source' => 'rp-payparts-api',
+				'source' => 'rozetkapay-payparts',
 				'body'   => $body,
 			)
 		);
@@ -143,12 +143,12 @@ class RP_Payparts_API {
 	public function fetch_banks() {
 		$result = $this->make_request( 'GET', '/banks/info?include_fees=true' );
 
-		$this->log_debug( 'Bank response: ' . wp_json_encode( $result ), array( 'source' => 'rp-payparts-api' ) );
+		$this->log_debug( 'Bank response: ' . wp_json_encode( $result ), array( 'source' => 'rozetkapay-payparts' ) );
 
 		if ( is_wp_error( $result ) ) {
 			$this->log_error(
 				'Failed to fetch banks: ' . $result->get_error_message(),
-				array( 'source' => 'rp-payparts-api' )
+				array( 'source' => 'rozetkapay-payparts' )
 			);
 			return array();
 		}
@@ -169,7 +169,7 @@ class RP_Payparts_API {
 		// Логуємо відповідь API для відладки
 		$this->log_debug(
 			'Payment creation response: ' . wp_json_encode( $result ),
-			array( 'source' => 'rp-payparts-api' )
+			array( 'source' => 'rozetkapay-payparts' )
 		);
 
 		return $result;
@@ -198,7 +198,7 @@ class RP_Payparts_API {
 		$this->log_debug(
 			'PayParts API: Requesting operation info',
 			array(
-				'source'   => 'rp-payparts-api',
+				'source'   => 'rozetkapay-payparts',
 				'endpoint' => $full_endpoint,
 				'params'   => $params,
 			)
@@ -210,7 +210,7 @@ class RP_Payparts_API {
 			$this->log_error(
 				'PayParts API: Failed to get operation info - ' . $result->get_error_message(),
 				array(
-					'source'       => 'rp-payparts-api',
+					'source'       => 'rozetkapay-payparts',
 					'external_id'  => $external_id,
 					'operation_id' => $operation_id,
 				)
@@ -221,7 +221,7 @@ class RP_Payparts_API {
 		$this->log_debug(
 			'PayParts API: Operation info response',
 			array(
-				'source'   => 'rp-payparts-api',
+				'source'   => 'rozetkapay-payparts',
 				'response' => $result,
 			)
 		);
@@ -242,7 +242,7 @@ class RP_Payparts_API {
 		$this->log_debug(
 			'PayParts API: Requesting operations info',
 			array(
-				'source'      => 'rp-payparts-api',
+				'source'      => 'rozetkapay-payparts',
 				'external_id' => $external_id,
 			)
 		);
@@ -253,7 +253,7 @@ class RP_Payparts_API {
 			$this->log_error(
 				'PayParts API: Failed to get operations info - ' . $result->get_error_message(),
 				array(
-					'source'      => 'rp-payparts-api',
+					'source'      => 'rozetkapay-payparts',
 					'external_id' => $external_id,
 				)
 			);
@@ -263,7 +263,7 @@ class RP_Payparts_API {
 		$this->log_debug(
 			'PayParts API: Operations info response',
 			array(
-				'source'   => 'rp-payparts-api',
+				'source'   => 'rozetkapay-payparts',
 				'response' => $result,
 			)
 		);
@@ -289,20 +289,19 @@ class RP_Payparts_API {
 		// Якщо тільки operation_id, намагаємося знайти через пошук замовлень
 		if ( ! empty( $operation_id ) ) {
 			// Шукаємо замовлення з таким operation_id
-			$orders = wc_get_orders(
+			$orders = rozetkapay_payparts_get_orders_by_meta(
+				'_rozetkapay_payparts_payment_id',
+				$operation_id,
 				array(
 					'limit'          => 1,
 					'return'         => 'objects',
 					'payment_method' => 'rp_payparts',
-					'meta_key'       => '_rp_payparts_payment_id',
-					'meta_value'     => $operation_id,
-					'meta_compare'   => '=',
 				)
 			);
 
 			if ( $orders ) {
 				$order       = current( $orders );
-				$external_id = $order->get_meta( '_rp_reference', true ) ?: (string) $order->get_id();
+				$external_id = rozetkapay_payparts_get_order_meta( $order, '_rozetkapay_payparts_reference' ) ?: (string) $order->get_id();
 				return $this->get_operation_info( $external_id, $operation_id );
 			}
 		}
@@ -318,7 +317,7 @@ class RP_Payparts_API {
 			if ( empty( $payload ) || empty( $signature ) ) {
 				$this->log_error(
 					'PayParts: Callback verification failed - empty payload or signature',
-					array( 'source' => 'rp-payparts-api' )
+					array( 'source' => 'rozetkapay-payparts' )
 				);
 				return false;
 			}
@@ -341,13 +340,13 @@ class RP_Payparts_API {
 			if ( $is_valid ) {
 				$this->log_debug(
 					'PayParts: Callback signature verified successfully',
-					array( 'source' => 'rp-payparts-api' )
+					array( 'source' => 'rozetkapay-payparts' )
 				);
 			} else {
 				$this->log_error(
 					'PayParts: Callback signature verification failed',
 					array(
-						'source'                => 'rp-payparts-api',
+						'source'                => 'rozetkapay-payparts',
 						'expected'              => $expected_clean,
 						'received'              => $signature_clean,
 						'payload_length'        => strlen( $payload ),
@@ -361,7 +360,7 @@ class RP_Payparts_API {
 		} catch ( Exception $e ) {
 			$this->log_error(
 				'PayParts: Callback verification exception - ' . $e->getMessage(),
-				array( 'source' => 'rp-payparts-api' )
+				array( 'source' => 'rozetkapay-payparts' )
 			);
 			return false;
 		}
@@ -547,7 +546,7 @@ class RP_Payparts_API {
 		$this->log_debug(
 			'PayParts API Debug Info',
 			array(
-				'source'     => 'rp-payparts-api',
+				'source'     => 'rozetkapay-payparts',
 				'debug_data' => $debug_info,
 			)
 		);
@@ -595,7 +594,7 @@ class RP_Payparts_API {
 		$this->log_debug(
 			'PayParts: Signature Debug Info',
 			array(
-				'source'          => 'rp-payparts-api',
+				'source'          => 'rozetkapay-payparts',
 				'signature_debug' => $debug_info,
 			)
 		);
@@ -668,12 +667,12 @@ class RP_Payparts_API {
 	 * Очищення кешу API
 	 */
 	public function clear_api_cache() {
-		delete_transient( 'rp_payparts_banks' );
-		delete_transient( 'rp_payparts_api_limits' );
+		delete_transient( 'rozetkapay_payparts_banks' );
+		delete_transient( 'rozetkapay_payparts_api_limits' );
 
 		$this->log_debug(
 			'PayParts API: Cache cleared',
-			array( 'source' => 'rp-payparts-api' )
+			array( 'source' => 'rozetkapay-payparts' )
 		);
 
 		return true;
@@ -683,14 +682,14 @@ class RP_Payparts_API {
 	 * Отримати кешовані дані
 	 */
 	public function get_cached_data( $key ) {
-		return get_transient( 'rp_payparts_' . $key );
+		return get_transient( 'rozetkapay_payparts_' . $key );
 	}
 
 	/**
 	 * Зберегти дані в кеш
 	 */
 	public function set_cached_data( $key, $data, $expiration = HOUR_IN_SECONDS ) {
-		return set_transient( 'rp_payparts_' . $key, $data, $expiration );
+		return set_transient( 'rozetkapay_payparts_' . $key, $data, $expiration );
 	}
 
 	/**

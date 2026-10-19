@@ -8,14 +8,109 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! function_exists( 'rp_payparts_get_month_declension' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_legacy_meta_key' ) ) {
+	/**
+	 * Назва meta-ключа, під якою значення зберігалося до версії 2.1.0.
+	 *
+	 * До 2.1.0 дані розстрочки мали префікс "_rp_payparts_", решта – "_rp_".
+	 *
+	 * @param string $key Поточний meta-ключ з префіксом "_rozetkapay_payparts_".
+	 * @return string Застарілий ключ або порожній рядок, якщо його немає.
+	 */
+	function rozetkapay_payparts_legacy_meta_key( $key ) {
+		$prefix = '_rozetkapay_payparts_';
+		if ( 0 !== strpos( $key, $prefix ) ) {
+			return '';
+		}
+
+		$name          = substr( $key, strlen( $prefix ) );
+		$payparts_keys = array( 'option', 'selected_bank', 'external_id', 'bank', 'term', 'test_mode', 'test_redirect_url', 'payment_id', 'payment_url', 'transaction_id' );
+
+		return in_array( $name, $payparts_keys, true ) ? '_rp_payparts_' . $name : '_rp_' . $name;
+	}
+}
+
+if ( ! function_exists( 'rozetkapay_payparts_get_order_meta' ) ) {
+	/**
+	 * Отримати meta замовлення з урахуванням ключів, збережених до версії 2.1.0.
+	 *
+	 * @param WC_Abstract_Order|int $order Замовлення, повернення або їх ID.
+	 * @param string                $key   Meta-ключ з префіксом "_rozetkapay_payparts_".
+	 * @return mixed Значення або порожній рядок.
+	 */
+	function rozetkapay_payparts_get_order_meta( $order, $key ) {
+		if ( ! $order instanceof WC_Abstract_Order ) {
+			$order = wc_get_order( $order );
+		}
+		if ( ! $order ) {
+			return '';
+		}
+
+		$value = $order->get_meta( $key, true );
+		if ( '' !== $value && null !== $value ) {
+			return $value;
+		}
+
+		$legacy_key = rozetkapay_payparts_legacy_meta_key( $key );
+		if ( '' === $legacy_key ) {
+			return $value;
+		}
+
+		$value = $order->get_meta( $legacy_key, true );
+		if ( '' === $value || null === $value ) {
+			// До 2.1.0 частина ключів писалася напряму в post meta, яку таблиці HPOS не бачать.
+			$value = get_post_meta( $order->get_id(), $legacy_key, true );
+		}
+
+		return $value;
+	}
+}
+
+if ( ! function_exists( 'rozetkapay_payparts_get_orders_by_meta' ) ) {
+	/**
+	 * Знайти замовлення за meta-значенням з урахуванням ключів, збережених до версії 2.1.0.
+	 *
+	 * @param string $key   Meta-ключ з префіксом "_rozetkapay_payparts_".
+	 * @param mixed  $value Значення для пошуку.
+	 * @param array  $args  Додаткові аргументи wc_get_orders().
+	 * @return array
+	 */
+	function rozetkapay_payparts_get_orders_by_meta( $key, $value, $args = array() ) {
+		$orders = wc_get_orders(
+			array_merge(
+				$args,
+				array(
+					'meta_key'   => $key,
+					'meta_value' => $value,
+				)
+			)
+		);
+
+		$legacy_key = rozetkapay_payparts_legacy_meta_key( $key );
+		if ( empty( $orders ) && '' !== $legacy_key ) {
+			$orders = wc_get_orders(
+				array_merge(
+					$args,
+					array(
+						'meta_key'   => $legacy_key,
+						'meta_value' => $value,
+					)
+				)
+			);
+		}
+
+		return $orders;
+	}
+}
+
+if ( ! function_exists( 'rozetkapay_payparts_get_month_declension' ) ) {
 	/**
 	 * Отримати правильне відмінювання слова "місяць"
 	 *
 	 * @param int $number Кількість місяців
 	 * @return string Правильне відмінювання
 	 */
-	function rp_payparts_get_month_declension( $number ) {
+	function rozetkapay_payparts_get_month_declension( $number ) {
 		$cases  = array( 2, 0, 1, 1, 1, 2 );
 		$titles = array(
 			__( 'місяць', 'rozetkapay-payparts' ),
@@ -27,14 +122,14 @@ if ( ! function_exists( 'rp_payparts_get_month_declension' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_bank_name' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_bank_name' ) ) {
 	/**
 	 * Отримати зручну для користувача назву банку за slug
 	 *
 	 * @param string $bank_slug Slug банку
 	 * @return string Назва банку
 	 */
-	function rp_payparts_get_bank_name( $bank_slug ) {
+	function rozetkapay_payparts_get_bank_name( $bank_slug ) {
 		// ✅ ОНОВЛЕНИЙ список реальних банків RozetkaPay API
 		$bank_names = array(
 			'abank'      => 'ABank',           // ✅ ДОДАНО
@@ -50,14 +145,14 @@ if ( ! function_exists( 'rp_payparts_get_bank_name' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_bank_min_period' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_bank_min_period' ) ) {
 	/**
 	 * Отримати мінімальний період для банку – НОВА ФУНКЦІЯ
 	 *
 	 * @param string $bank_slug Slug банку
 	 * @return int Мінімальний період у місяцях
 	 */
-	function rp_payparts_get_bank_min_period( $bank_slug ) {
+	function rozetkapay_payparts_get_bank_min_period( $bank_slug ) {
 		$bank_min_periods = array(
 			'monobank'   => 3,     // Monobank мінімум 3 місяці
 			'izibank'    => 3,      // izibank мінімум 3 місяці
@@ -70,7 +165,7 @@ if ( ! function_exists( 'rp_payparts_get_bank_min_period' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_validate_bank_terms' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_validate_bank_terms' ) ) {
 	/**
 	 * Валідація списку періодів для банку – НОВА ФУНКЦІЯ
 	 *
@@ -78,8 +173,8 @@ if ( ! function_exists( 'rp_payparts_validate_bank_terms' ) ) {
 	 * @param array  $periods Масив періодів
 	 * @return array Відфільтрований масив періодів
 	 */
-	function rp_payparts_validate_bank_terms( $bank_slug, $periods ) {
-		$min_period = rp_payparts_get_bank_min_period( $bank_slug );
+	function rozetkapay_payparts_validate_bank_terms( $bank_slug, $periods ) {
+		$min_period = rozetkapay_payparts_get_bank_min_period( $bank_slug );
 
 		return array_filter(
 			$periods,
@@ -90,7 +185,7 @@ if ( ! function_exists( 'rp_payparts_validate_bank_terms' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_format_currency' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_format_currency' ) ) {
 	/**
 	 * Форматування валюти
 	 *
@@ -98,7 +193,7 @@ if ( ! function_exists( 'rp_payparts_format_currency' ) ) {
 	 * @param string $currency Код валюти
 	 * @return string Відформатована сума
 	 */
-	function rp_payparts_format_currency( $amount, $currency = 'UAH' ) {
+	function rozetkapay_payparts_format_currency( $amount, $currency = 'UAH' ) {
 		$formatted = number_format( $amount, 0, ',', ' ' );
 
 		switch ( $currency ) {
@@ -114,24 +209,24 @@ if ( ! function_exists( 'rp_payparts_format_currency' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_is_plugin_active' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_is_plugin_active' ) ) {
 	/**
 	 * Перевірити, чи активний плагін
 	 *
 	 * @return bool
 	 */
-	function rp_payparts_is_plugin_active() {
-		return class_exists( 'RP_Payparts_Gateway' );
+	function rozetkapay_payparts_is_plugin_active() {
+		return class_exists( 'RozetkaPay_Payparts_Gateway' );
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_gateway' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_gateway' ) ) {
 	/**
 	 * Отримати екземпляр gateway
 	 *
-	 * @return RP_Payparts_Gateway|null
+	 * @return RozetkaPay_Payparts_Gateway|null
 	 */
-	function rp_payparts_get_gateway() {
+	function rozetkapay_payparts_get_gateway() {
 		if ( ! class_exists( 'WC_Payment_Gateways' ) ) {
 			return null;
 		}
@@ -141,14 +236,14 @@ if ( ! function_exists( 'rp_payparts_get_gateway' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_payment_method_type' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_payment_method_type' ) ) {
 	/**
 	 * Визначити тип методу оплати за замовленням – НОВА ФУНКЦІЯ
 	 *
 	 * @param WC_Order $order Замовлення
 	 * @return string|null Тип методу ('payparts' або 'standard')
 	 */
-	function rp_payparts_get_payment_method_type( $order ) {
+	function rozetkapay_payparts_get_payment_method_type( $order ) {
 		if ( ! $order ) {
 			return null;
 		}
@@ -166,14 +261,14 @@ if ( ! function_exists( 'rp_payparts_get_payment_method_type' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_payment_method_title' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_payment_method_title' ) ) {
 	/**
 	 * Отримати назву методу оплати – НОВА ФУНКЦІЯ
 	 *
 	 * @param string $method Тип методу ('payparts' або 'standard')
 	 * @return string
 	 */
-	function rp_payparts_get_payment_method_title( $method ) {
+	function rozetkapay_payparts_get_payment_method_title( $method ) {
 		switch ( $method ) {
 			case 'payparts':
 				return __( 'RozetkaPay Оплата частинами', 'rozetkapay-payparts' );
@@ -185,7 +280,7 @@ if ( ! function_exists( 'rp_payparts_get_payment_method_title' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_calculate_installment' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_calculate_installment' ) ) {
 	/**
 	 * Розрахувати розмір щомісячного платежу
 	 *
@@ -193,7 +288,7 @@ if ( ! function_exists( 'rp_payparts_calculate_installment' ) ) {
 	 * @param int   $months Кількість місяців
 	 * @return float Розмір щомісячного платежу
 	 */
-	function rp_payparts_calculate_installment( $total, $months ) {
+	function rozetkapay_payparts_calculate_installment( $total, $months ) {
 		if ( $months <= 0 ) {
 			return 0;
 		}
@@ -202,14 +297,14 @@ if ( ! function_exists( 'rp_payparts_calculate_installment' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_available_banks' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_available_banks' ) ) {
 	/**
 	 * Отримати список доступних банків
 	 *
 	 * @return array
 	 */
-	function rp_payparts_get_available_banks() {
-		$gateway = rp_payparts_get_gateway();
+	function rozetkapay_payparts_get_available_banks() {
+		$gateway = rozetkapay_payparts_get_gateway();
 
 		if ( ! $gateway ) {
 			return array();
@@ -227,13 +322,13 @@ if ( ! function_exists( 'rp_payparts_get_available_banks' ) ) {
 		}
 
 		// Отримуємо з кешу або API
-		$banks = get_transient( 'rp_payparts_banks' );
+		$banks = get_transient( 'rozetkapay_payparts_banks' );
 		if ( false === $banks && method_exists( $gateway, 'get_api_client' ) ) {
 			$api   = $gateway->get_api_client();
 			$banks = $api->fetch_banks();
 
 			if ( ! empty( $banks ) && ! is_wp_error( $banks ) ) {
-				set_transient( 'rp_payparts_banks', $banks, HOUR_IN_SECONDS );
+				set_transient( 'rozetkapay_payparts_banks', $banks, HOUR_IN_SECONDS );
 			}
 		}
 
@@ -241,67 +336,67 @@ if ( ! function_exists( 'rp_payparts_get_available_banks' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_clear_cache' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_clear_cache' ) ) {
 	/**
 	 * Очистити кеш плагіна
 	 */
-	function rp_payparts_clear_cache() {
-		delete_transient( 'rp_payparts_banks' );
+	function rozetkapay_payparts_clear_cache() {
+		delete_transient( 'rozetkapay_payparts_banks' );
 		delete_transient( 'rozetkapay_payparts_banks' ); // Старий ключ для сумісності
 
-		rp_payparts_log( 'Cache cleared' );
+		rozetkapay_payparts_log( 'Cache cleared' );
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_plugin_version' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_plugin_version' ) ) {
 	/**
 	 * Отримати версію плагіна
 	 *
 	 * @return string
 	 */
-	function rp_payparts_get_plugin_version() {
-		return defined( 'RP_PAYPARTS_VERSION' ) ? RP_PAYPARTS_VERSION : '2.0.2';
+	function rozetkapay_payparts_get_plugin_version() {
+		return defined( 'ROZETKAPAY_PAYPARTS_VERSION' ) ? ROZETKAPAY_PAYPARTS_VERSION : '2.0.2';
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_is_woocommerce_active' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_is_woocommerce_active' ) ) {
 	/**
 	 * Перевірити, чи активний WooCommerce
 	 *
 	 * @return bool
 	 */
-	function rp_payparts_is_woocommerce_active() {
+	function rozetkapay_payparts_is_woocommerce_active() {
 		return class_exists( 'WooCommerce' );
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_order_payment_data' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_order_payment_data' ) ) {
 	/**
 	 * Отримати метадані замовлення, пов’язані з розстрочкою
 	 *
 	 * @param int $order_id ID замовлення
 	 * @return array
 	 */
-	function rp_payparts_get_order_payment_data( $order_id ) {
+	function rozetkapay_payparts_get_order_payment_data( $order_id ) {
 		return array(
-			'option'         => get_post_meta( $order_id, '_rp_payparts_option', true ),
-			'payment_id'     => get_post_meta( $order_id, '_rp_payparts_payment_id', true ),
-			'payment_url'    => get_post_meta( $order_id, '_rp_payparts_payment_url', true ),
-			'transaction_id' => get_post_meta( $order_id, '_rp_payparts_transaction_id', true ),
-			'bank'           => get_post_meta( $order_id, '_rp_payparts_bank', true ),
-			'term'           => get_post_meta( $order_id, '_rp_payparts_term', true ),
+			'option'         => rozetkapay_payparts_get_order_meta( $order_id, '_rozetkapay_payparts_option' ),
+			'payment_id'     => rozetkapay_payparts_get_order_meta( $order_id, '_rozetkapay_payparts_payment_id' ),
+			'payment_url'    => rozetkapay_payparts_get_order_meta( $order_id, '_rozetkapay_payparts_payment_url' ),
+			'transaction_id' => rozetkapay_payparts_get_order_meta( $order_id, '_rozetkapay_payparts_transaction_id' ),
+			'bank'           => rozetkapay_payparts_get_order_meta( $order_id, '_rozetkapay_payparts_bank' ),
+			'term'           => rozetkapay_payparts_get_order_meta( $order_id, '_rozetkapay_payparts_term' ),
 		);
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_parse_option' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_parse_option' ) ) {
 	/**
 	 * Парсинг опції розстрочки – ОНОВЛЕНА ВЕРСІЯ
 	 *
 	 * @param string $option Опція у форматі "bank|term"
 	 * @return array|null
 	 */
-	function rp_payparts_parse_option( $option ) {
+	function rozetkapay_payparts_parse_option( $option ) {
 		if ( empty( $option ) || ! strpos( $option, '|' ) ) {
 			return null;
 		}
@@ -319,27 +414,27 @@ if ( ! function_exists( 'rp_payparts_parse_option' ) ) {
 		}
 
 		// ✅ Використовуємо нову функцію отримання назви банку
-		$bank_name = rp_payparts_get_bank_name( $bank_slug );
+		$bank_name = rozetkapay_payparts_get_bank_name( $bank_slug );
 
 		return array(
 			'bank_slug' => $bank_slug,
 			'bank_name' => $bank_name,
 			'term'      => $term,
-			'term_text' => $term . ' ' . rp_payparts_get_month_declension( $term ),
+			'term_text' => $term . ' ' . rozetkapay_payparts_get_month_declension( $term ),
 		);
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_order_installment_summary' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_order_installment_summary' ) ) {
 	/**
 	 * Отримати зведення по розстрочці для замовлення
 	 *
 	 * @param int $order_id ID замовлення
 	 * @return array|null
 	 */
-	function rp_payparts_get_order_installment_summary( $order_id ) {
-		$option = get_post_meta( $order_id, '_rp_payparts_option', true );
-		$parsed = rp_payparts_parse_option( $option );
+	function rozetkapay_payparts_get_order_installment_summary( $order_id ) {
+		$option = rozetkapay_payparts_get_order_meta( $order_id, '_rozetkapay_payparts_option' );
+		$parsed = rozetkapay_payparts_parse_option( $option );
 
 		if ( ! $parsed ) {
 			return null;
@@ -350,13 +445,13 @@ if ( ! function_exists( 'rp_payparts_get_order_installment_summary' ) ) {
 			return null;
 		}
 
-		$monthly_payment = rp_payparts_calculate_installment( $order->get_total(), $parsed['term'] );
+		$monthly_payment = rozetkapay_payparts_calculate_installment( $order->get_total(), $parsed['term'] );
 
 		return array_merge(
 			$parsed,
 			array(
 				'monthly_payment'           => $monthly_payment,
-				'monthly_payment_formatted' => rp_payparts_format_currency( $monthly_payment ),
+				'monthly_payment_formatted' => rozetkapay_payparts_format_currency( $monthly_payment ),
 				'total_amount'              => $order->get_total(),
 				'total_amount_formatted'    => $order->get_formatted_order_total(),
 			)
@@ -364,15 +459,15 @@ if ( ! function_exists( 'rp_payparts_get_order_installment_summary' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_validate_amount' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_validate_amount' ) ) {
 	/**
 	 * Валідація суми для розстрочки – ОНОВЛЕНА ВЕРСІЯ
 	 *
 	 * @param float $amount Сума для перевірки
 	 * @return array Результат валідації
 	 */
-	function rp_payparts_validate_amount( $amount ) {
-		$gateway = rp_payparts_get_gateway();
+	function rozetkapay_payparts_validate_amount( $amount ) {
+		$gateway = rozetkapay_payparts_get_gateway();
 
 		if ( ! $gateway ) {
 			return array(
@@ -382,7 +477,7 @@ if ( ! function_exists( 'rp_payparts_validate_amount' ) ) {
 		}
 
 		// ✅ Отримуємо ліміти з реальних даних банків
-		$limits = rp_payparts_get_banks_limits();
+		$limits = rozetkapay_payparts_get_banks_limits();
 
 		// Перевірка мінімальної суми
 		if ( $limits['min_amount'] > 0 && $amount < $limits['min_amount'] ) {
@@ -391,7 +486,7 @@ if ( ! function_exists( 'rp_payparts_validate_amount' ) ) {
 				'message' => sprintf(
 					// translators: %s: formatted minimum order amount.
 					__( 'Мінімальна сума для розстрочки: %s', 'rozetkapay-payparts' ),
-					rp_payparts_format_currency( $limits['min_amount'] )
+					rozetkapay_payparts_format_currency( $limits['min_amount'] )
 				),
 			);
 		}
@@ -403,7 +498,7 @@ if ( ! function_exists( 'rp_payparts_validate_amount' ) ) {
 				'message' => sprintf(
 					// translators: %s: formatted maximum order amount.
 					__( 'Максимальна сума для розстрочки: %s', 'rozetkapay-payparts' ),
-					rp_payparts_format_currency( $limits['max_amount'] )
+					rozetkapay_payparts_format_currency( $limits['max_amount'] )
 				),
 			);
 		}
@@ -415,14 +510,14 @@ if ( ! function_exists( 'rp_payparts_validate_amount' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_banks_limits' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_banks_limits' ) ) {
 	/**
 	 * Отримати мінімальні та максимальні ліміти з усіх банків – НОВА ФУНКЦІЯ
 	 *
 	 * @return array
 	 */
-	function rp_payparts_get_banks_limits() {
-		$banks = get_transient( 'rp_payparts_banks' );
+	function rozetkapay_payparts_get_banks_limits() {
+		$banks = get_transient( 'rozetkapay_payparts_banks' );
 
 		if ( false === $banks || ! is_array( $banks ) ) {
 			// Резервні ліміти на основі реальних даних API
@@ -453,7 +548,7 @@ if ( ! function_exists( 'rp_payparts_get_banks_limits' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_bank_fee' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_bank_fee' ) ) {
 	/**
 	 * Отримати комісію банку за певний період – НОВА ФУНКЦІЯ
 	 *
@@ -461,8 +556,8 @@ if ( ! function_exists( 'rp_payparts_get_bank_fee' ) ) {
 	 * @param int    $period Період у місяцях
 	 * @return float|null Комісія у відсотках або null, якщо не знайдено
 	 */
-	function rp_payparts_get_bank_fee( $bank_slug, $period ) {
-		$banks = get_transient( 'rp_payparts_banks' );
+	function rozetkapay_payparts_get_bank_fee( $bank_slug, $period ) {
+		$banks = get_transient( 'rozetkapay_payparts_banks' );
 
 		if ( false === $banks || ! is_array( $banks ) ) {
 			return null;
@@ -485,11 +580,11 @@ if ( ! function_exists( 'rp_payparts_get_bank_fee' ) ) {
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_cleanup_transients' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_cleanup_transients' ) ) {
 	/**
 	 * Очищення старих transient'ів
 	 */
-	function rp_payparts_cleanup_transients() {
+	function rozetkapay_payparts_cleanup_transients() {
 		global $wpdb;
 
 		// Очищаємо прострочені transient'и з нашим префіксом
@@ -498,7 +593,7 @@ if ( ! function_exists( 'rp_payparts_cleanup_transients' ) ) {
 				"DELETE FROM {$wpdb->options} 
              WHERE (option_name LIKE %s OR option_name LIKE %s)
              AND option_value < %d",
-				'_transient_timeout_rp_payparts_%',
+				'_transient_timeout_rozetkapay_payparts_%',
 				'_transient_timeout_rozetkapay_payparts_%',
 				time()
 			)
@@ -510,47 +605,47 @@ if ( ! function_exists( 'rp_payparts_cleanup_transients' ) ) {
 				"DELETE FROM {$wpdb->options} 
              WHERE option_name LIKE %s 
              OR option_name LIKE %s",
-				'_transient_rp_payparts_%',
+				'_transient_rozetkapay_payparts_%',
 				'_transient_rozetkapay_payparts_%'
 			)
 		);
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_debug' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_debug' ) ) {
 	/**
 	 * Відлагоджувальне логування (лише в debug-режимі)
 	 *
 	 * @param mixed  $data Дані для лога
 	 * @param string $context Контекст
 	 */
-	function rp_payparts_debug( $data, $context = 'debug' ) {
+	function rozetkapay_payparts_debug( $data, $context = 'debug' ) {
 		if ( ! WP_DEBUG || ! WP_DEBUG_LOG ) {
 			return;
 		}
 
-		$gateway = rp_payparts_get_gateway();
+		$gateway = rozetkapay_payparts_get_gateway();
 		if ( ! $gateway || ! $gateway->debug_mode ) {
 			return;
 		}
 
 		$message = sprintf( '[%s] %s', $context, is_string( $data ) ? $data : wp_json_encode( $data ) );
-		rp_payparts_log( $message, 'debug' );
+		rozetkapay_payparts_log( $message, 'debug' );
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_get_plugin_data' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_get_plugin_data' ) ) {
 	/**
 	 * Отримати дані плагіна
 	 *
 	 * @return array
 	 */
-	function rp_payparts_get_plugin_data() {
+	function rozetkapay_payparts_get_plugin_data() {
 		if ( ! function_exists( 'get_plugin_data' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		$plugin_file = RP_PAYPARTS_PLUGIN_PATH . 'rozetkapay-payparts.php';
+		$plugin_file = ROZETKAPAY_PAYPARTS_PLUGIN_PATH . 'rozetkapay-payparts.php';
 
 		if ( file_exists( $plugin_file ) ) {
 			return get_plugin_data( $plugin_file );
@@ -558,21 +653,21 @@ if ( ! function_exists( 'rp_payparts_get_plugin_data' ) ) {
 
 		return array(
 			'Name'        => 'RozetkaPay Payparts',
-			'Version'     => rp_payparts_get_plugin_version(),
+			'Version'     => rozetkapay_payparts_get_plugin_version(),
 			'Description' => __( 'Оплата частинами через RozetkaPay', 'rozetkapay-payparts' ),
 			'Author'      => 'RozetkaPay',
 		);
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_widget_shortcode' ) ) {
+if ( ! function_exists( 'rozetkapay_payparts_widget_shortcode' ) ) {
 	/**
 	 * Шорткод для віджета розстрочки
 	 *
 	 * @param array $atts Атрибути шорткоду
 	 * @return string HTML віджета
 	 */
-	function rp_payparts_widget_shortcode( $atts ) {
+	function rozetkapay_payparts_widget_shortcode( $atts ) {
 		$atts = shortcode_atts(
 			array(
 				'price'      => 0,
@@ -598,18 +693,18 @@ if ( ! function_exists( 'rp_payparts_widget_shortcode' ) ) {
 			return '<p>' . esc_html__( 'Вкажіть ціну для розрахунку розстрочки', 'rozetkapay-payparts' ) . '</p>';
 		}
 
-		$gateway = rp_payparts_get_gateway();
+		$gateway = rozetkapay_payparts_get_gateway();
 		if ( ! $gateway || ! $gateway->is_available() ) {
 			return '';
 		}
 
-		$validation = rp_payparts_validate_amount( $price );
+		$validation = rozetkapay_payparts_validate_amount( $price );
 		if ( ! $validation['valid'] ) {
 			return '';
 		}
 
 		// Отримуємо доступні варіанти
-		$banks = rp_payparts_get_available_banks();
+		$banks = rozetkapay_payparts_get_available_banks();
 		if ( empty( $banks ) ) {
 			return '';
 		}
@@ -619,7 +714,7 @@ if ( ! function_exists( 'rp_payparts_widget_shortcode' ) ) {
 
 		// Знаходимо мінімальний платіж
 		foreach ( $target_terms as $term ) {
-			$monthly_payment = rp_payparts_calculate_installment( $price, $term );
+			$monthly_payment = rozetkapay_payparts_calculate_installment( $price, $term );
 			if ( null === $min_payment || $monthly_payment < $min_payment ) {
 				$min_payment = $monthly_payment;
 			}
@@ -634,7 +729,7 @@ if ( ! function_exists( 'rp_payparts_widget_shortcode' ) ) {
 		<div class="rozetkapay-payparts-widget rozetkapay-style-<?php echo esc_attr( $atts['style'] ); ?>">
 			<?php if ( 'true' === $atts['show_logo'] ) : ?>
 				<div class="rozetkapay-widget-logo">
-					<img src="<?php echo esc_url( RP_PAYPARTS_PLUGIN_URL . 'assets/images/rozetkapay-logo.png' ); ?>" 
+					<img src="<?php echo esc_url( ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/images/rozetkapay-logo.png' ); ?>" 
 						alt="RozetkaPay" class="rozetkapay-logo">
 				</div>
 			<?php endif; ?>
@@ -646,7 +741,7 @@ if ( ! function_exists( 'rp_payparts_widget_shortcode' ) ) {
 				
 				<div class="rozetkapay-widget-best">
 					<?php esc_html_e( 'від', 'rozetkapay-payparts' ); ?>
-					<strong><?php echo esc_html( rp_payparts_format_currency( $min_payment ) ); ?></strong>
+					<strong><?php echo esc_html( rozetkapay_payparts_format_currency( $min_payment ) ); ?></strong>
 					<?php esc_html_e( 'на місяць', 'rozetkapay-payparts' ); ?>
 				</div>
 			</div>
@@ -658,31 +753,36 @@ if ( ! function_exists( 'rp_payparts_widget_shortcode' ) ) {
 }
 
 // Реєструємо шорткод тільки якщо він ще не зареєстрований
+if ( ! shortcode_exists( 'rozetkapay_payparts_widget' ) ) {
+	add_shortcode( 'rozetkapay_payparts_widget', 'rozetkapay_payparts_widget_shortcode' );
+}
+
+// Назва шорткоду до версії 2.1.0. Залишено для сторінок, на яких його вже вставлено.
 if ( ! shortcode_exists( 'rp_payparts_widget' ) ) {
-	add_shortcode( 'rp_payparts_widget', 'rp_payparts_widget_shortcode' );
+	add_shortcode( 'rp_payparts_widget', 'rozetkapay_payparts_widget_shortcode' );
 }
 
 // === Added: reference helpers ===
-if ( ! function_exists( 'rp_payparts_build_reference' ) ) {
-	function rp_payparts_build_reference( WC_Order $order, $prefix = 'roz1', $sep = '-' ) {
+if ( ! function_exists( 'rozetkapay_payparts_build_reference' ) ) {
+	function rozetkapay_payparts_build_reference( WC_Order $order, $prefix = 'roz1', $sep = '-' ) {
 		$number = method_exists( $order, 'get_order_number' ) ? $order->get_order_number() : $order->get_id();
 		$prefix = trim( (string) $prefix );
 		$sep    = (string) $sep;
 		$ref    = $prefix !== '' ? $prefix . $sep . $number : (string) $number;
-		$order->update_meta_data( '_rp_reference', $ref );
+		$order->update_meta_data( '_rozetkapay_payparts_reference', $ref );
 		$order->save();
 		return $ref;
 	}
 }
 
-if ( ! function_exists( 'rp_payparts_find_order_by_reference' ) ) {
-	function rp_payparts_find_order_by_reference( $reference ) {
-		$orders = wc_get_orders(
+if ( ! function_exists( 'rozetkapay_payparts_find_order_by_reference' ) ) {
+	function rozetkapay_payparts_find_order_by_reference( $reference ) {
+		$orders = rozetkapay_payparts_get_orders_by_meta(
+			'_rozetkapay_payparts_reference',
+			$reference,
 			array(
-				'meta_key'   => '_rp_reference',
-				'meta_value' => $reference,
-				'limit'      => 1,
-				'return'     => 'ids',
+				'limit'  => 1,
+				'return' => 'ids',
 			)
 		);
 		return $orders ? wc_get_order( $orders[0] ) : false;

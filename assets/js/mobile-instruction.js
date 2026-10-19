@@ -1,11 +1,11 @@
 jQuery(document).ready(function($) {
     'use strict';
 
-    if (typeof rp_mobile_instruction === 'undefined' || !rp_mobile_instruction) {
+    if (typeof rozetkapay_payparts_mobile_instruction === 'undefined' || !rozetkapay_payparts_mobile_instruction) {
         return;
     }
 
-    var bankName = rp_mobile_instruction.bank_name || '';
+    var bankName = rozetkapay_payparts_mobile_instruction.bank_name || '';
     var modal = $(
         '<div class="rp-mobile-instruction-modal">' +
             '<div class="rp-modal-content">' +

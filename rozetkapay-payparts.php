@@ -43,17 +43,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Bootstrap guard to prevent multiple initializations
-if ( defined( 'RP_PAYPARTS_BOOTSTRAPPED' ) ) {
+if ( defined( 'ROZETKAPAY_PAYPARTS_BOOTSTRAPPED' ) ) {
 	return;
 }
-define( 'RP_PAYPARTS_BOOTSTRAPPED', true );
+define( 'ROZETKAPAY_PAYPARTS_BOOTSTRAPPED', true );
 
 // Define plugin constants
-define( 'RP_PAYPARTS_VERSION', '2.0.9' );
-define( 'RP_PAYPARTS_PLUGIN_FILE', __FILE__ );
-define( 'RP_PAYPARTS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
-define( 'RP_PAYPARTS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
-define( 'RP_PAYPARTS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'ROZETKAPAY_PAYPARTS_VERSION', '2.0.9' );
+define( 'ROZETKAPAY_PAYPARTS_PLUGIN_FILE', __FILE__ );
+define( 'ROZETKAPAY_PAYPARTS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+define( 'ROZETKAPAY_PAYPARTS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+define( 'ROZETKAPAY_PAYPARTS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 /**
  * Write a diagnostic entry to the WooCommerce log.
@@ -63,7 +63,7 @@ define( 'RP_PAYPARTS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
  * @param string $message Message to record.
  * @param string $level   PSR-3 log level.
  */
-function rp_payparts_log( $message, $level = 'debug' ) {
+function rozetkapay_payparts_log( $message, $level = 'debug' ) {
 	if ( ! function_exists( 'wc_get_logger' ) ) {
 		return;
 	}
@@ -84,7 +84,7 @@ function rp_payparts_log( $message, $level = 'debug' ) {
 /**
  * Security check - ensure WooCommerce is active
  */
-function rp_payparts_check_woocommerce() {
+function rozetkapay_payparts_check_woocommerce() {
 	if ( ! class_exists( 'WooCommerce' ) ) {
 		add_action(
 			'admin_notices',
@@ -106,9 +106,9 @@ function rp_payparts_check_woocommerce() {
 /**
  * Load plugin files and initialize all components
  */
-function rp_payparts_init() {
+function rozetkapay_payparts_init() {
 	// Перевіряємо наявність WooCommerce
-	if ( ! rp_payparts_check_woocommerce() ) {
+	if ( ! rozetkapay_payparts_check_woocommerce() ) {
 		return;
 	}
 
@@ -124,12 +124,12 @@ function rp_payparts_init() {
 
 	// Завантажуємо файли з перевіркою існування
 	foreach ( $files_to_load as $file ) {
-		$file_path = RP_PAYPARTS_PLUGIN_PATH . $file;
+		$file_path = ROZETKAPAY_PAYPARTS_PLUGIN_PATH . $file;
 		if ( file_exists( $file_path ) ) {
 			require_once $file_path;
-			rp_payparts_log( 'RozetkaPay: Loaded file - ' . $file );
+			rozetkapay_payparts_log( 'RozetkaPay: Loaded file - ' . $file );
 		} else {
-			rp_payparts_log( 'RozetkaPay: File not found - ' . $file );
+			rozetkapay_payparts_log( 'RozetkaPay: File not found - ' . $file );
 
 			// Показуємо помилку тільки для критично важливих файлів
 			if ( in_array( $file, array( 'includes/functions.php', 'includes/class-gateway.php' ), true ) ) {
@@ -154,15 +154,15 @@ function rp_payparts_init() {
 		'woocommerce_payment_gateways',
 		function ( $gateways ) {
 			// Додаємо Payparts gateway
-			if ( class_exists( 'RP_Payparts_Gateway' ) ) {
-				$gateways[] = 'RP_Payparts_Gateway';
-				rp_payparts_log( 'RozetkaPay: RP_Payparts_Gateway added to WooCommerce' );
+			if ( class_exists( 'RozetkaPay_Payparts_Gateway' ) ) {
+				$gateways[] = 'RozetkaPay_Payparts_Gateway';
+				rozetkapay_payparts_log( 'RozetkaPay: RozetkaPay_Payparts_Gateway added to WooCommerce' );
 			}
 
 			// Додаємо Standard gateway (якщо доступний)
-			if ( class_exists( 'RP_Standard_Gateway' ) ) {
-				$gateways[] = 'RP_Standard_Gateway';
-				rp_payparts_log( 'RozetkaPay: RP_Standard_Gateway added to WooCommerce' );
+			if ( class_exists( 'RozetkaPay_Payparts_Standard_Gateway' ) ) {
+				$gateways[] = 'RozetkaPay_Payparts_Standard_Gateway';
+				rozetkapay_payparts_log( 'RozetkaPay: RozetkaPay_Payparts_Standard_Gateway added to WooCommerce' );
 			}
 
 			return $gateways;
@@ -171,30 +171,30 @@ function rp_payparts_init() {
 
 	// Завантажуємо адмін-панель (якщо в адмінці)
 	if ( is_admin() ) {
-		$admin_file = RP_PAYPARTS_PLUGIN_PATH . 'admin/class-admin.php';
+		$admin_file = ROZETKAPAY_PAYPARTS_PLUGIN_PATH . 'admin/class-admin.php';
 		if ( file_exists( $admin_file ) ) {
 			require_once $admin_file;
-			rp_payparts_log( 'RozetkaPay: Admin class loaded' );
+			rozetkapay_payparts_log( 'RozetkaPay: Admin class loaded' );
 		}
 	}
 
 	// Завантажуємо менеджер ресурсів (CSS/JS)
-	$assets_file = RP_PAYPARTS_PLUGIN_PATH . 'includes/class-assets-manager.php';
+	$assets_file = ROZETKAPAY_PAYPARTS_PLUGIN_PATH . 'includes/class-assets-manager.php';
 	if ( file_exists( $assets_file ) ) {
 		require_once $assets_file;
-		if ( class_exists( 'RP_Payparts_Assets_Manager' ) ) {
-			new RP_Payparts_Assets_Manager();
-			rp_payparts_log( 'RozetkaPay: Assets manager loaded' );
+		if ( class_exists( 'RozetkaPay_Payparts_Assets_Manager' ) ) {
+			new RozetkaPay_Payparts_Assets_Manager();
+			rozetkapay_payparts_log( 'RozetkaPay: Assets manager loaded' );
 		}
 	}
 
-	rp_payparts_log( 'RozetkaPay: Plugin initialization completed successfully' );
+	rozetkapay_payparts_log( 'RozetkaPay: Plugin initialization completed successfully' );
 }
 
 /**
  * Plugin activation hook
  */
-function rp_payparts_activate() {
+function rozetkapay_payparts_activate() {
 	// Перевіряємо наявність WooCommerce
 	if ( ! class_exists( 'WooCommerce' ) ) {
 		deactivate_plugins( plugin_basename( __FILE__ ) );
@@ -216,71 +216,75 @@ function rp_payparts_activate() {
 	}
 
 	// Створюємо необхідні таблиці БД (якщо потрібно)
-	rp_payparts_create_tables();
+	rozetkapay_payparts_create_tables();
 
 	// Встановлюємо налаштування за замовчуванням
-	rp_payparts_set_default_options();
+	rozetkapay_payparts_set_default_options();
+
+	// Плануємо опитування статусів платежів
+	rozetkapay_payparts_schedule_status_checks();
 
 	// Очищаємо кеш
-	if ( function_exists( 'rp_payparts_clear_cache' ) ) {
-		rp_payparts_clear_cache();
+	if ( function_exists( 'rozetkapay_payparts_clear_cache' ) ) {
+		rozetkapay_payparts_clear_cache();
 	}
 
 	// Примусово оновлюємо rewrite rules
 	flush_rewrite_rules();
 
 	// Логуємо активацію
-	rp_payparts_log( 'RozetkaPay: Plugin activated successfully' );
+	rozetkapay_payparts_log( 'RozetkaPay: Plugin activated successfully' );
 
 	// Показуємо сповіщення про активацію
-	set_transient( 'rp_payparts_activation_notice', true, 30 );
+	set_transient( 'rozetkapay_payparts_activation_notice', true, 30 );
 }
 
 /**
  * Plugin deactivation hook
  */
-function rp_payparts_deactivate() {
+function rozetkapay_payparts_deactivate() {
 	// Зупиняємо заплановані задачі
-	wp_clear_scheduled_hook( 'rp_payparts_cleanup_transients' );
-	wp_clear_scheduled_hook( 'rp_rozetkapay_status_check' );
-	wp_clear_scheduled_hook( 'rp_rozetkapay_payparts_status_check' );
+	wp_clear_scheduled_hook( 'rozetkapay_payparts_cleanup_transients' );
+	wp_clear_scheduled_hook( 'rozetkapay_payparts_standard_status_check' );
+	wp_clear_scheduled_hook( 'rozetkapay_payparts_status_check' );
 
 	// Очищаємо кеш
-	if ( function_exists( 'rp_payparts_clear_cache' ) ) {
-		rp_payparts_clear_cache();
+	if ( function_exists( 'rozetkapay_payparts_clear_cache' ) ) {
+		rozetkapay_payparts_clear_cache();
 	}
 
 	// Очищаємо rewrite rules
 	flush_rewrite_rules();
 
 	// Логуємо деактивацію
-	rp_payparts_log( 'RozetkaPay: Plugin deactivated' );
+	rozetkapay_payparts_log( 'RozetkaPay: Plugin deactivated' );
 }
 
 /**
  * Plugin uninstall hook
  */
-function rp_payparts_uninstall() {
+function rozetkapay_payparts_uninstall() {
 	// Видаляємо налаштування плагіна
 	delete_option( 'woocommerce_rp_payparts_settings' );
 	delete_option( 'woocommerce_rp_standard_settings' );
+	delete_option( 'rozetkapay_payparts_version' );
 
 	// Очищаємо всі transients
-	if ( function_exists( 'rp_payparts_cleanup_transients' ) ) {
-		rp_payparts_cleanup_transients();
+	if ( function_exists( 'rozetkapay_payparts_cleanup_transients' ) ) {
+		rozetkapay_payparts_cleanup_transients();
 	}
 
 	// Видаляємо кастомні таблиці БД (якщо були створені)
-	rp_payparts_remove_tables();
+	rozetkapay_payparts_remove_tables();
 
 	// Логуємо видалення
-	rp_payparts_log( 'RozetkaPay: Plugin uninstalled completely' );
+	rozetkapay_payparts_log( 'RozetkaPay: Plugin uninstalled completely' );
 }
 
 /**
  * Create database tables if needed
  */
-function rp_payparts_create_tables() {
+function rozetkapay_payparts_create_tables() {
 	// У поточній версії використовуємо meta-поля WooCommerce
 	// У майбутніх версіях тут можна створити кастомні таблиці
 }
@@ -288,7 +292,7 @@ function rp_payparts_create_tables() {
 /**
  * Set default plugin options
  */
-function rp_payparts_set_default_options() {
+function rozetkapay_payparts_set_default_options() {
 	// Налаштування за замовчуванням для Payparts gateway
 	$default_payparts_settings = array(
 		'enabled'               => 'no',
@@ -319,36 +323,36 @@ function rp_payparts_set_default_options() {
 	$current_payparts_settings = get_option( 'woocommerce_rp_payparts_settings', array() );
 	if ( empty( $current_payparts_settings ) ) {
 		update_option( 'woocommerce_rp_payparts_settings', $default_payparts_settings );
-		rp_payparts_log( 'RozetkaPay: Set default Payparts settings' );
+		rozetkapay_payparts_log( 'RozetkaPay: Set default Payparts settings' );
 	}
 
 	$current_standard_settings = get_option( 'woocommerce_rp_standard_settings', array() );
 	if ( empty( $current_standard_settings ) ) {
 		update_option( 'woocommerce_rp_standard_settings', $default_standard_settings );
-		rp_payparts_log( 'RozetkaPay: Set default Standard settings' );
+		rozetkapay_payparts_log( 'RozetkaPay: Set default Standard settings' );
 	}
 }
 
 /**
  * Remove custom database tables
  */
-function rp_payparts_remove_tables() {
+function rozetkapay_payparts_remove_tables() {
 	// Видаляємо кастомні таблиці, якщо вони були створені в майбутніх версіях
 }
 
 /**
  * Schedule cleanup tasks
  */
-function rp_payparts_schedule_cleanup() {
-	if ( ! wp_next_scheduled( 'rp_payparts_cleanup_transients' ) ) {
-		wp_schedule_event( time(), 'daily', 'rp_payparts_cleanup_transients' );
+function rozetkapay_payparts_schedule_cleanup() {
+	if ( ! wp_next_scheduled( 'rozetkapay_payparts_cleanup_transients' ) ) {
+		wp_schedule_event( time(), 'daily', 'rozetkapay_payparts_cleanup_transients' );
 	}
 }
 
 /**
  * Add plugin action links on plugins page
  */
-function rp_payparts_plugin_action_links( $links ) {
+function rozetkapay_payparts_plugin_action_links( $links ) {
 	$settings_links = array(
 		'<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=checkout&section=rp_payparts' ) ) . '">' .
 			esc_html__( 'Оплата частинами', 'rozetkapay-payparts' ) . '</a>',
@@ -362,9 +366,9 @@ function rp_payparts_plugin_action_links( $links ) {
 /**
  * Show activation notice
  */
-function rp_payparts_activation_notice() {
-	if ( get_transient( 'rp_payparts_activation_notice' ) ) {
-		delete_transient( 'rp_payparts_activation_notice' );
+function rozetkapay_payparts_activation_notice() {
+	if ( get_transient( 'rozetkapay_payparts_activation_notice' ) ) {
+		delete_transient( 'rozetkapay_payparts_activation_notice' );
 
 		echo '<div class="notice notice-success is-dismissible">';
 		echo '<p><strong>' . esc_html__( 'RozetkaPay Payparts активовано!', 'rozetkapay-payparts' ) . '</strong></p>';
@@ -382,22 +386,22 @@ function rp_payparts_activation_notice() {
  * Основні hooks для ініціалізації плагіна
  */
 // Ініціалізуємо плагін після завантаження всіх плагінів
-add_action( 'plugins_loaded', 'rp_payparts_init', 11 );
+add_action( 'plugins_loaded', 'rozetkapay_payparts_init', 11 );
 
 // Стандартні WordPress hooks
-add_action( 'init', 'rp_payparts_schedule_cleanup' );
-add_action( 'admin_notices', 'rp_payparts_activation_notice' );
+add_action( 'init', 'rozetkapay_payparts_schedule_cleanup' );
+add_action( 'admin_notices', 'rozetkapay_payparts_activation_notice' );
 
 // Реєструємо hooks активації/деактивації/видалення
-register_activation_hook( __FILE__, 'rp_payparts_activate' );
-register_deactivation_hook( __FILE__, 'rp_payparts_deactivate' );
-register_uninstall_hook( __FILE__, 'rp_payparts_uninstall' );
+register_activation_hook( __FILE__, 'rozetkapay_payparts_activate' );
+register_deactivation_hook( __FILE__, 'rozetkapay_payparts_deactivate' );
+register_uninstall_hook( __FILE__, 'rozetkapay_payparts_uninstall' );
 
 // Додаємо посилання на сторінці плагінів
-add_filter( 'plugin_action_links_' . RP_PAYPARTS_PLUGIN_BASENAME, 'rp_payparts_plugin_action_links' );
+add_filter( 'plugin_action_links_' . ROZETKAPAY_PAYPARTS_PLUGIN_BASENAME, 'rozetkapay_payparts_plugin_action_links' );
 
 // Реєструємо cleanup-функцію
-add_action( 'rp_payparts_cleanup_transients', 'rp_payparts_cleanup_transients' );
+add_action( 'rozetkapay_payparts_cleanup_transients', 'rozetkapay_payparts_cleanup_transients' );
 
 /**
  * === ОНОВЛЕНИЙ CRON — опитування статусу платежів RozetkaPay Standard (кожні 10 хвилин) ===
@@ -405,8 +409,8 @@ add_action( 'rp_payparts_cleanup_transients', 'rp_payparts_cleanup_transients' )
 add_filter(
 	'cron_schedules',
 	function ( $schedules ) {
-		if ( ! isset( $schedules['every_ten_minutes'] ) ) {
-			$schedules['every_ten_minutes'] = array(
+		if ( ! isset( $schedules['rozetkapay_payparts_ten_minutes'] ) ) {
+			$schedules['rozetkapay_payparts_ten_minutes'] = array(
 				'interval' => 600, // 10 хвилин
 				'display'  => __( 'Every 10 minutes (RozetkaPay)', 'rozetkapay-payparts' ),
 			);
@@ -415,37 +419,45 @@ add_filter(
 	}
 );
 
-register_activation_hook(
-	__FILE__,
-	function () {
-		if ( ! wp_next_scheduled( 'rp_rozetkapay_status_check' ) ) {
-			wp_schedule_event( time() + 300, 'every_ten_minutes', 'rp_rozetkapay_status_check' );
-		}
-		if ( ! wp_next_scheduled( 'rp_rozetkapay_payparts_status_check' ) ) {
-			wp_schedule_event( time() + 360, 'every_ten_minutes', 'rp_rozetkapay_payparts_status_check' );
-		}
+/**
+ * Schedule payment status polling for both gateways
+ */
+function rozetkapay_payparts_schedule_status_checks() {
+	if ( ! wp_next_scheduled( 'rozetkapay_payparts_standard_status_check' ) ) {
+		wp_schedule_event( time() + 300, 'rozetkapay_payparts_ten_minutes', 'rozetkapay_payparts_standard_status_check' );
 	}
-);
+	if ( ! wp_next_scheduled( 'rozetkapay_payparts_status_check' ) ) {
+		wp_schedule_event( time() + 360, 'rozetkapay_payparts_ten_minutes', 'rozetkapay_payparts_status_check' );
+	}
+}
 
-register_deactivation_hook(
-	__FILE__,
-	function () {
-		$timestamp = wp_next_scheduled( 'rp_rozetkapay_status_check' );
-		if ( $timestamp ) {
-			wp_unschedule_event( $timestamp, 'rp_rozetkapay_status_check' );
-		}
-		$timestamp2 = wp_next_scheduled( 'rp_rozetkapay_payparts_status_check' );
-		if ( $timestamp2 ) {
-			wp_unschedule_event( $timestamp2, 'rp_rozetkapay_payparts_status_check' );
-		}
+/**
+ * Run data upgrades after the plugin was updated
+ *
+ * Activation hooks do not run on update, so the version stored in the database is compared on every request.
+ */
+function rozetkapay_payparts_maybe_upgrade() {
+	$installed_version = get_option( 'rozetkapay_payparts_version', '' );
+	if ( ROZETKAPAY_PAYPARTS_VERSION === $installed_version ) {
+		return;
 	}
-);
+
+	// 2.1.0: cron hooks were renamed to the rozetkapay_payparts_ prefix.
+	wp_clear_scheduled_hook( 'rp_rozetkapay_status_check' );
+	wp_clear_scheduled_hook( 'rp_rozetkapay_payparts_status_check' );
+	wp_clear_scheduled_hook( 'rp_payparts_cleanup_transients' );
+	rozetkapay_payparts_schedule_status_checks();
+
+	update_option( 'rozetkapay_payparts_version', ROZETKAPAY_PAYPARTS_VERSION );
+	rozetkapay_payparts_log( 'RozetkaPay: Upgraded from version ' . ( $installed_version ? $installed_version : 'unknown' ) . ' to ' . ROZETKAPAY_PAYPARTS_VERSION );
+}
+add_action( 'init', 'rozetkapay_payparts_maybe_upgrade' );
 
 /**
  * ✅ ОНОВЛЕНИЙ CRON для Standard-платежів з підтримкою повернень
  */
 add_action(
-	'rp_rozetkapay_status_check',
+	'rozetkapay_payparts_standard_status_check',
 	function () {
 		if ( ! function_exists( 'wc_get_orders' ) ) {
 			return;
@@ -460,32 +472,32 @@ add_action(
 		// Якщо опитування статусів вимкнено в налаштуваннях — виходимо
 		if ( isset( $std_settings['enable_status_polling'] ) && $std_settings['enable_status_polling'] !== 'yes' ) {
 			if ( $debug ) {
-				rp_payparts_log( 'RozetkaPay CRON: опитування статусів вимкнено налаштуванням.' );
+				rozetkapay_payparts_log( 'RozetkaPay CRON: опитування статусів вимкнено налаштуванням.' );
 			}
 			return;
 		}
 
 		if ( empty( $api_user ) || empty( $api_pass ) ) {
 			if ( $debug ) {
-				rp_payparts_log( 'RozetkaPay CRON: пропуск — немає API-креденшіалів для rp_standard.' );
+				rozetkapay_payparts_log( 'RozetkaPay CRON: пропуск — немає API-креденшіалів для rp_standard.' );
 			}
 			return;
 		}
 
-		if ( ! class_exists( 'RP_Standard_API' ) ) {
+		if ( ! class_exists( 'RozetkaPay_Payparts_Standard_API' ) ) {
 			// Спроба підключити клас напряму (на випадок порядку завантаження)
 			if ( file_exists( __DIR__ . '/includes/class-standard-api.php' ) ) {
 				require_once __DIR__ . '/includes/class-standard-api.php';
 			}
 		}
-		if ( ! class_exists( 'RP_Standard_API' ) ) {
+		if ( ! class_exists( 'RozetkaPay_Payparts_Standard_API' ) ) {
 			if ( $debug ) {
-				rp_payparts_log( 'RozetkaPay CRON: RP_Standard_API недоступний.' );
+				rozetkapay_payparts_log( 'RozetkaPay CRON: RozetkaPay_Payparts_Standard_API недоступний.' );
 			}
 			return;
 		}
 
-		$api = new RP_Standard_API( $api_user, $api_pass );
+		$api = new RozetkaPay_Payparts_Standard_API( $api_user, $api_pass );
 
 		$page      = 1;
 		$per_page  = 50;
@@ -509,32 +521,32 @@ add_action(
 			}
 
 			foreach ( $orders as $order ) {
-				$external_id = $order->get_meta( '_rp_reference', true ) ?: ( method_exists( $order, 'get_order_number' ) ? (string) $order->get_order_number() : (string) $order->get_id() );
+				$external_id = rozetkapay_payparts_get_order_meta( $order, '_rozetkapay_payparts_reference' ) ?: ( method_exists( $order, 'get_order_number' ) ? (string) $order->get_order_number() : (string) $order->get_id() );
 
 				if ( empty( $external_id ) ) {
 					continue;
 				}
 
 				// Перевіряємо, чи не обробляли вже повернення для цього замовлення
-				if ( $order->get_meta( '_rp_refund_processed', true ) ) {
+				if ( rozetkapay_payparts_get_order_meta( $order, '_rozetkapay_payparts_refund_processed' ) ) {
 					continue;
 				}
 
 				if ( $debug ) {
-					rp_payparts_log( sprintf( 'RozetkaPay CRON: перевірка статусу замовлення #%s (external_id=%s)', $order->get_id(), $external_id ) );
+					rozetkapay_payparts_log( sprintf( 'RozetkaPay CRON: перевірка статусу замовлення #%s (external_id=%s)', $order->get_id(), $external_id ) );
 				}
 
 				// ✅ ОНОВЛЕНО: Отримуємо повну інформацію про платіж, включаючи повернення
 				$status_data = $api->get_payment_status( $external_id );
 				if ( is_wp_error( $status_data ) ) {
 					if ( $debug ) {
-						rp_payparts_log( 'RozetkaPay CRON: помилка статусу — ' . $status_data->get_error_message() );
+						rozetkapay_payparts_log( 'RozetkaPay CRON: помилка статусу — ' . $status_data->get_error_message() );
 					}
 					continue;
 				}
 
 				if ( $debug ) {
-					rp_payparts_log( 'RozetkaPay CRON: структура відповіді: ' . wp_json_encode( array_keys( is_array( $status_data ) ? $status_data : array() ) ) );
+					rozetkapay_payparts_log( 'RozetkaPay CRON: структура відповіді: ' . wp_json_encode( array_keys( is_array( $status_data ) ? $status_data : array() ) ) );
 				}
 
 				// ✅ НОВЕ: Перевіряємо інформацію про повернення у відповіді
@@ -565,10 +577,10 @@ add_action(
 				// ✅ НОВЕ: Обробляємо знайдені повернення
 				if ( $has_refund && $refund_amount > 0 ) {
 					if ( $debug ) {
-						rp_payparts_log( sprintf( 'RozetkaPay CRON: ✅ ЗНАЙДЕНО ПОВЕРНЕННЯ для замовлення #%s, сума=%s', $order->get_id(), $refund_amount ) );
+						rozetkapay_payparts_log( sprintf( 'RozetkaPay CRON: ✅ ЗНАЙДЕНО ПОВЕРНЕННЯ для замовлення #%s, сума=%s', $order->get_id(), $refund_amount ) );
 					}
 
-					rp_standard_process_refund( $order, $refund_amount, $debug );
+					rozetkapay_payparts_standard_process_refund( $order, $refund_amount, $debug );
 
 				} else {
 					// Визначаємо статус з реальної структури API RozetkaPay Standard:
@@ -604,7 +616,7 @@ add_action(
 					}
 
 					if ( $debug ) {
-						rp_payparts_log(
+						rozetkapay_payparts_log(
 							sprintf(
 								'RozetkaPay CRON: статус замовлення #%s = "%s" (code="%s", purchased=%s, canceled=%s)',
 								$order->get_id(),
@@ -630,18 +642,18 @@ add_action(
 							}
 							$order->add_order_note( $note );
 							if ( $debug ) {
-								rp_payparts_log( 'RozetkaPay CRON: замовлення #' . $order->get_id() . ' переведено в paid.' );
+								rozetkapay_payparts_log( 'RozetkaPay CRON: замовлення #' . $order->get_id() . ' переведено в paid.' );
 							}
 						}
 					} elseif ( in_array( $status, $failed_codes, true ) || in_array( $status_code, $failed_codes, true ) ) {
 						if ( ! $order->has_status( array( 'failed', 'cancelled' ) ) ) {
 							$order->update_status( 'failed', 'RozetkaPay: платіж відхилено через cron. Код: ' . ( $status_code ?: $status ) );
 							if ( $debug ) {
-								rp_payparts_log( 'RozetkaPay CRON: замовлення #' . $order->get_id() . ' позначено як failed.' );
+								rozetkapay_payparts_log( 'RozetkaPay CRON: замовлення #' . $order->get_id() . ' позначено як failed.' );
 							}
 						}
 					} elseif ( $debug ) {
-							rp_payparts_log( 'RozetkaPay CRON: замовлення #' . $order->get_id() . ' — статус невизначений, залишаємо як є.' );
+							rozetkapay_payparts_log( 'RozetkaPay CRON: замовлення #' . $order->get_id() . ' — статус невизначений, залишаємо як є.' );
 					}
 				}
 
@@ -656,7 +668,7 @@ add_action(
 		} while ( true );
 
 		if ( $debug ) {
-			rp_payparts_log( 'RozetkaPay CRON: завершено, опрацьовано замовлень: ' . $processed );
+			rozetkapay_payparts_log( 'RozetkaPay CRON: завершено, опрацьовано замовлень: ' . $processed );
 		}
 	}
 );
@@ -664,7 +676,7 @@ add_action(
 /**
  * ✅ НОВА функція для обробки повернень Standard-платежів
  */
-function rp_standard_process_refund( $order, $refund_amount, $debug = false ) {
+function rozetkapay_payparts_standard_process_refund( $order, $refund_amount, $debug = false ) {
 	$order_id    = $order->get_id();
 	$order_total = floatval( $order->get_total() );
 
@@ -673,7 +685,7 @@ function rp_standard_process_refund( $order, $refund_amount, $debug = false ) {
 	}
 
 	if ( $debug ) {
-		rp_payparts_log(
+		rozetkapay_payparts_log(
 			sprintf(
 				'Standard REFUND: обробка повернення для замовлення #%s, сума=%s з %s',
 				$order_id,
@@ -691,12 +703,12 @@ function rp_standard_process_refund( $order, $refund_amount, $debug = false ) {
 	}
 
 	if ( $debug ) {
-		rp_payparts_log( sprintf( 'Standard REFUND: вже повернено=%s, нове повернення=%s', $total_refunded, $refund_amount ) );
+		rozetkapay_payparts_log( sprintf( 'Standard REFUND: вже повернено=%s, нове повернення=%s', $total_refunded, $refund_amount ) );
 	}
 
 	if ( $total_refunded >= $refund_amount ) {
 		if ( $debug ) {
-			rp_payparts_log( 'Standard REFUND: повернення вже було оброблено раніше' );
+			rozetkapay_payparts_log( 'Standard REFUND: повернення вже було оброблено раніше' );
 		}
 		return;
 	}
@@ -716,16 +728,16 @@ function rp_standard_process_refund( $order, $refund_amount, $debug = false ) {
 
 		if ( $refund_id && ! is_wp_error( $refund_id ) ) {
 			if ( $debug ) {
-				rp_payparts_log( 'Standard REFUND: створено WC_Refund #' . $refund_id . ' на суму ' . $amount_to_refund );
+				rozetkapay_payparts_log( 'Standard REFUND: створено WC_Refund #' . $refund_id . ' на суму ' . $amount_to_refund );
 			}
 
-			$order->update_meta_data( '_rp_refund_processed', current_time( 'mysql' ) );
+			$order->update_meta_data( '_rozetkapay_payparts_refund_processed', current_time( 'mysql' ) );
 
 			$total_after_refund = $total_refunded + $amount_to_refund;
 			if ( $total_after_refund >= $order_total ) {
 				$order->update_status( 'refunded', 'RozetkaPay Standard: повне повернення опрацьовано.' );
 				if ( $debug ) {
-					rp_payparts_log( 'Standard REFUND: замовлення #' . $order_id . ' переведено в статус refunded' );
+					rozetkapay_payparts_log( 'Standard REFUND: замовлення #' . $order_id . ' переведено в статус refunded' );
 				}
 			} else {
 				$order->add_order_note(
@@ -739,7 +751,7 @@ function rp_standard_process_refund( $order, $refund_amount, $debug = false ) {
 
 			$order->save();
 		} elseif ( $debug ) {
-				rp_payparts_log( 'Standard REFUND: помилка створення WC_Refund: ' . ( is_wp_error( $refund_id ) ? $refund_id->get_error_message() : 'unknown error' ) );
+				rozetkapay_payparts_log( 'Standard REFUND: помилка створення WC_Refund: ' . ( is_wp_error( $refund_id ) ? $refund_id->get_error_message() : 'unknown error' ) );
 		}
 	}
 }
@@ -748,7 +760,7 @@ function rp_standard_process_refund( $order, $refund_amount, $debug = false ) {
  * ОНОВЛЕНА CRON-задача для PayParts з правильною обробкою структури API
  */
 add_action(
-	'rp_rozetkapay_payparts_status_check',
+	'rozetkapay_payparts_status_check',
 	function () {
 		if ( ! function_exists( 'wc_get_orders' ) ) {
 			return;
@@ -762,31 +774,31 @@ add_action(
 
 		if ( isset( $pp_settings['enable_status_polling'] ) && $pp_settings['enable_status_polling'] !== 'yes' ) {
 			if ( $debug ) {
-				rp_payparts_log( 'RozetkaPay PayParts CRON: опитування статусів вимкнено налаштуванням.' );
+				rozetkapay_payparts_log( 'RozetkaPay PayParts CRON: опитування статусів вимкнено налаштуванням.' );
 			}
 			return;
 		}
 
 		if ( empty( $api_user ) || empty( $api_pass ) ) {
 			if ( $debug ) {
-				rp_payparts_log( 'RozetkaPay PayParts CRON: пропуск — немає API-креденшіалів.' );
+				rozetkapay_payparts_log( 'RozetkaPay PayParts CRON: пропуск — немає API-креденшіалів.' );
 			}
 			return;
 		}
 
-		if ( ! class_exists( 'RP_Payparts_API' ) ) {
+		if ( ! class_exists( 'RozetkaPay_Payparts_API' ) ) {
 			if ( file_exists( __DIR__ . '/includes/class-api.php' ) ) {
 				require_once __DIR__ . '/includes/class-api.php';
 			}
 		}
-		if ( ! class_exists( 'RP_Payparts_API' ) ) {
+		if ( ! class_exists( 'RozetkaPay_Payparts_API' ) ) {
 			if ( $debug ) {
-				rp_payparts_log( 'RozetkaPay PayParts CRON: RP_Payparts_API недоступний.' );
+				rozetkapay_payparts_log( 'RozetkaPay PayParts CRON: RozetkaPay_Payparts_API недоступний.' );
 			}
 			return;
 		}
 
-		$api = new RP_Payparts_API( $api_user, $api_pass, $test_mode );
+		$api = new RozetkaPay_Payparts_API( $api_user, $api_pass, $test_mode );
 
 		$page      = 1;
 		$per_page  = 50;
@@ -810,19 +822,19 @@ add_action(
 			}
 
 			foreach ( $orders as $order ) {
-				$external_id = $order->get_meta( '_rp_reference', true ) ?: ( method_exists( $order, 'get_order_number' ) ? (string) $order->get_order_number() : (string) $order->get_id() );
+				$external_id = rozetkapay_payparts_get_order_meta( $order, '_rozetkapay_payparts_reference' ) ?: ( method_exists( $order, 'get_order_number' ) ? (string) $order->get_order_number() : (string) $order->get_id() );
 
 				if ( empty( $external_id ) ) {
 					continue;
 				}
 
 				// Перевіряємо, чи не обробляли вже повернення для цього замовлення
-				if ( $order->get_meta( '_rp_refund_processed', true ) ) {
+				if ( rozetkapay_payparts_get_order_meta( $order, '_rozetkapay_payparts_refund_processed' ) ) {
 					continue;
 				}
 
 				if ( $debug ) {
-					rp_payparts_log(
+					rozetkapay_payparts_log(
 						sprintf(
 							'PayParts CRON: перевірка операцій замовлення #%s (external_id=%s)',
 							$order->get_id(),
@@ -836,20 +848,20 @@ add_action(
 
 				if ( is_wp_error( $operations_data ) ) {
 					if ( $debug ) {
-						rp_payparts_log( 'PayParts CRON: помилка API — ' . $operations_data->get_error_message() );
+						rozetkapay_payparts_log( 'PayParts CRON: помилка API — ' . $operations_data->get_error_message() );
 					}
 					continue;
 				}
 
 				if ( empty( $operations_data ) || ! is_array( $operations_data ) ) {
 					if ( $debug ) {
-						rp_payparts_log( 'PayParts CRON: порожня відповідь API для замовлення #' . $order->get_id() );
+						rozetkapay_payparts_log( 'PayParts CRON: порожня відповідь API для замовлення #' . $order->get_id() );
 					}
 					continue;
 				}
 
 				if ( $debug ) {
-					rp_payparts_log( 'PayParts CRON: структура відповіді API: ' . wp_json_encode( array_keys( $operations_data ) ) );
+					rozetkapay_payparts_log( 'PayParts CRON: структура відповіді API: ' . wp_json_encode( array_keys( $operations_data ) ) );
 				}
 
 				// ОНОВЛЕНО: правильна обробка структури відповіді API
@@ -867,7 +879,7 @@ add_action(
 				}
 
 				if ( $debug ) {
-					rp_payparts_log(
+					rozetkapay_payparts_log(
 						sprintf(
 							'PayParts CRON: замовлення #%s - total_refunded=%s, is_refunded=%s, refund_details_count=%s, main_status=%s, main_status_code=%s',
 							$order->get_id(),
@@ -895,7 +907,7 @@ add_action(
 						$refund_amount      = isset( $refund['amount'] ) ? floatval( $refund['amount'] ) : 0;
 
 						if ( $debug ) {
-							rp_payparts_log(
+							rozetkapay_payparts_log(
 								sprintf(
 									'PayParts CRON: операція повернення - status=%s, status_code=%s, amount=%s',
 									$refund_status,
@@ -912,7 +924,7 @@ add_action(
 							$successful_refund_amount += $refund_amount;
 
 							if ( $debug ) {
-								rp_payparts_log(
+								rozetkapay_payparts_log(
 									sprintf(
 										'PayParts CRON: ЗНАЙДЕНО УСПІШНЕ ПОВЕРНЕННЯ для замовлення #%s, сума=%s',
 										$order->get_id(),
@@ -927,7 +939,7 @@ add_action(
 				// Обробляємо знайдені повернення
 				if ( $has_successful_refund && $successful_refund_amount > 0 ) {
 					if ( $debug ) {
-						rp_payparts_log(
+						rozetkapay_payparts_log(
 							sprintf(
 								'PayParts CRON: Обробляємо повернення замовлення #%s на суму %s',
 								$order->get_id(),
@@ -936,7 +948,7 @@ add_action(
 						);
 					}
 
-					rp_payparts_process_refund( $order, $successful_refund_amount, $debug );
+					rozetkapay_payparts_process_refund( $order, $successful_refund_amount, $debug );
 
 				} else {
 					// Обробляємо статус основної операції лише якщо немає повернення
@@ -952,7 +964,7 @@ add_action(
 								$order->payment_complete();
 								$order->add_order_note( 'RozetkaPay PayParts: платіж підтверджено по cron.' );
 								if ( $debug ) {
-									rp_payparts_log( 'PayParts CRON: замовлення #' . $order->get_id() . ' переведено в paid.' );
+									rozetkapay_payparts_log( 'PayParts CRON: замовлення #' . $order->get_id() . ' переведено в paid.' );
 								}
 							}
 							break;
@@ -962,7 +974,7 @@ add_action(
 							if ( $order->has_status( array( 'pending', 'on-hold' ) ) ) {
 								$order->update_status( 'processing', 'PayParts: контракт підписано клієнтом, очікується оплата.' );
 								if ( $debug ) {
-									rp_payparts_log( 'PayParts CRON: замовлення #' . $order->get_id() . ' переведено в processing (contract signed).' );
+									rozetkapay_payparts_log( 'PayParts CRON: замовлення #' . $order->get_id() . ' переведено в processing (contract signed).' );
 								}
 							}
 							break;
@@ -975,7 +987,7 @@ add_action(
 							if ( ! $order->has_status( array( 'failed', 'cancelled' ) ) ) {
 								$order->update_status( 'failed', 'RozetkaPay PayParts: платіж відхилено по cron.' );
 								if ( $debug ) {
-									rp_payparts_log( 'PayParts CRON: замовлення #' . $order->get_id() . ' позначено як failed.' );
+									rozetkapay_payparts_log( 'PayParts CRON: замовлення #' . $order->get_id() . ' позначено як failed.' );
 								}
 							}
 							break;
@@ -985,7 +997,7 @@ add_action(
 						case 'waiting_for_payment':
 						default:
 							if ( $debug ) {
-								rp_payparts_log( 'PayParts CRON: замовлення #' . $order->get_id() . ' лишається в поточному статусі (' . $final_status . ').' );
+								rozetkapay_payparts_log( 'PayParts CRON: замовлення #' . $order->get_id() . ' лишається в поточному статусі (' . $final_status . ').' );
 							}
 							break;
 					}
@@ -1001,7 +1013,7 @@ add_action(
 		} while ( true );
 
 		if ( $debug ) {
-			rp_payparts_log( 'PayParts CRON: завершено, опрацьовано замовлень: ' . $processed );
+			rozetkapay_payparts_log( 'PayParts CRON: завершено, опрацьовано замовлень: ' . $processed );
 		}
 	}
 );
@@ -1009,7 +1021,7 @@ add_action(
 /**
  * Функція для обробки повернень PayParts
  */
-function rp_payparts_process_refund( $order, $refund_amount, $debug = false ) {
+function rozetkapay_payparts_process_refund( $order, $refund_amount, $debug = false ) {
 	$order_id    = $order->get_id();
 	$order_total = floatval( $order->get_total() );
 
@@ -1018,7 +1030,7 @@ function rp_payparts_process_refund( $order, $refund_amount, $debug = false ) {
 	}
 
 	if ( $debug ) {
-		rp_payparts_log(
+		rozetkapay_payparts_log(
 			sprintf(
 				'PayParts REFUND: обробка повернення для замовлення #%s, сума=%s з %s',
 				$order_id,
@@ -1036,12 +1048,12 @@ function rp_payparts_process_refund( $order, $refund_amount, $debug = false ) {
 	}
 
 	if ( $debug ) {
-		rp_payparts_log( sprintf( 'PayParts REFUND: вже повернено=%s, нове повернення=%s', $total_refunded, $refund_amount ) );
+		rozetkapay_payparts_log( sprintf( 'PayParts REFUND: вже повернено=%s, нове повернення=%s', $total_refunded, $refund_amount ) );
 	}
 
 	if ( $total_refunded >= $refund_amount ) {
 		if ( $debug ) {
-			rp_payparts_log( 'PayParts REFUND: повернення вже було оброблено раніше' );
+			rozetkapay_payparts_log( 'PayParts REFUND: повернення вже було оброблено раніше' );
 		}
 		return;
 	}
@@ -1061,16 +1073,16 @@ function rp_payparts_process_refund( $order, $refund_amount, $debug = false ) {
 
 		if ( $refund_id && ! is_wp_error( $refund_id ) ) {
 			if ( $debug ) {
-				rp_payparts_log( 'PayParts REFUND: створено WC_Refund #' . $refund_id . ' на суму ' . $amount_to_refund );
+				rozetkapay_payparts_log( 'PayParts REFUND: створено WC_Refund #' . $refund_id . ' на суму ' . $amount_to_refund );
 			}
 
-			$order->update_meta_data( '_rp_refund_processed', current_time( 'mysql' ) );
+			$order->update_meta_data( '_rozetkapay_payparts_refund_processed', current_time( 'mysql' ) );
 
 			$total_after_refund = $total_refunded + $amount_to_refund;
 			if ( $total_after_refund >= $order_total ) {
 				$order->update_status( 'refunded', 'RozetkaPay PayParts: повне повернення опрацьовано.' );
 				if ( $debug ) {
-					rp_payparts_log( 'PayParts REFUND: замовлення #' . $order_id . ' переведено в статус refunded' );
+					rozetkapay_payparts_log( 'PayParts REFUND: замовлення #' . $order_id . ' переведено в статус refunded' );
 				}
 			} else {
 				$order->add_order_note(
@@ -1084,7 +1096,7 @@ function rp_payparts_process_refund( $order, $refund_amount, $debug = false ) {
 
 			$order->save();
 		} elseif ( $debug ) {
-				rp_payparts_log( 'PayParts REFUND: помилка створення WC_Refund: ' . ( is_wp_error( $refund_id ) ? $refund_id->get_error_message() : 'unknown error' ) );
+				rozetkapay_payparts_log( 'PayParts REFUND: помилка створення WC_Refund: ' . ( is_wp_error( $refund_id ) ? $refund_id->get_error_message() : 'unknown error' ) );
 		}
 	}
 }
@@ -1093,8 +1105,8 @@ function rp_payparts_process_refund( $order, $refund_amount, $debug = false ) {
 add_action(
 	'init',
 	function () {
-		if ( ! wp_next_scheduled( 'rp_rozetkapay_payparts_status_check' ) ) {
-			wp_schedule_event( time() + 360, 'every_ten_minutes', 'rp_rozetkapay_payparts_status_check' );
+		if ( ! wp_next_scheduled( 'rozetkapay_payparts_status_check' ) ) {
+			wp_schedule_event( time() + 360, 'rozetkapay_payparts_ten_minutes', 'rozetkapay_payparts_status_check' );
 		}
 	}
 );
@@ -1103,14 +1115,14 @@ add_action(
  * AJAX: системна інформація для відлагодження (admin only)
  */
 add_action(
-	'wp_ajax_rp_payparts_system_info',
+	'wp_ajax_rozetkapay_payparts_system_info',
 	function () {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( 'Access denied' );
 		}
 
 		$info = array(
-			'plugin_version'      => RP_PAYPARTS_VERSION,
+			'plugin_version'      => ROZETKAPAY_PAYPARTS_VERSION,
 			'wordpress_version'   => get_bloginfo( 'version' ),
 			'woocommerce_version' => defined( 'WC_VERSION' ) ? WC_VERSION : 'Not detected',
 			'php_version'         => PHP_VERSION,
@@ -1120,8 +1132,8 @@ add_action(
 				'standard' => home_url( '/wc-api/rp_standard' ),
 			),
 			'classes_loaded'      => array(
-				'RP_Payparts_Gateway' => class_exists( 'RP_Payparts_Gateway' ),
-				'RP_Standard_Gateway' => class_exists( 'RP_Standard_Gateway' ),
+				'RozetkaPay_Payparts_Gateway'          => class_exists( 'RozetkaPay_Payparts_Gateway' ),
+				'RozetkaPay_Payparts_Standard_Gateway' => class_exists( 'RozetkaPay_Payparts_Standard_Gateway' ),
 			),
 			'settings'            => array(
 				'payparts' => get_option( 'woocommerce_rp_payparts_settings', array() ),
@@ -1137,5 +1149,5 @@ add_action(
  * Фінальна перевірка перед завершенням завантаження файлу
  */
 if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-	rp_payparts_log( 'RozetkaPay: Main plugin file loaded successfully. Version: ' . RP_PAYPARTS_VERSION );
+	rozetkapay_payparts_log( 'RozetkaPay: Main plugin file loaded successfully. Version: ' . ROZETKAPAY_PAYPARTS_VERSION );
 }

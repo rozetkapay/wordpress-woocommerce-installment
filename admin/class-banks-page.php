@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Admin page: RozetkaPay — Доступні банки (PayParts)
  */
-class RP_Payparts_Banks_Page {
+class RozetkaPay_Payparts_Banks_Page {
 
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ) );
@@ -17,7 +17,7 @@ class RP_Payparts_Banks_Page {
 			__( 'RozetkaPay: Доступні банки', 'rozetkapay-payparts' ),
 			__( 'RozetkaPay: Доступні банки', 'rozetkapay-payparts' ),
 			'manage_woocommerce',
-			'rp-payparts-banks',
+			'rozetkapay-payparts-banks',
 			array( __CLASS__, 'render_page' )
 		);
 	}
@@ -112,7 +112,7 @@ class RP_Payparts_Banks_Page {
 		$include_fees = null;
 
 		$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
-		if ( wp_verify_nonce( $nonce, 'rp_payparts_banks_filter' ) ) {
+		if ( wp_verify_nonce( $nonce, 'rozetkapay_payparts_banks_filter' ) ) {
 			$amount       = isset( $_GET['amount'] ) ? floatval( wp_unslash( $_GET['amount'] ) ) : null;
 			$term         = isset( $_GET['term'] ) ? intval( wp_unslash( $_GET['term'] ) ) : null;
 			$include_fees = isset( $_GET['include_fees'] ) ? sanitize_text_field( wp_unslash( $_GET['include_fees'] ) ) : null;
@@ -138,8 +138,8 @@ class RP_Payparts_Banks_Page {
 			<p class="description">Ендпоінт: <code>/api/payparts/v1/banks/info</code> • Авторизація: <strong>BasicAuth</strong> (login:password)</p>
 
 			<form method="get" style="margin:16px 0;">
-				<input type="hidden" name="page" value="rp-payparts-banks"/>
-				<?php wp_nonce_field( 'rp_payparts_banks_filter' ); ?>
+				<input type="hidden" name="page" value="rozetkapay-payparts-banks"/>
+				<?php wp_nonce_field( 'rozetkapay_payparts_banks_filter' ); ?>
 				<label>
 					Сума (UAH):
 					<input type="number" step="0.01" name="amount" value="<?php echo esc_attr( $amount ); ?>" style="width:140px;">
@@ -157,7 +157,7 @@ class RP_Payparts_Banks_Page {
 				&nbsp;&nbsp;
 				<button class="button button-primary">Оновити</button>
 				&nbsp;
-				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=rp-payparts-banks' ) ); ?>">Скинути</a>
+				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=rozetkapay-payparts-banks' ) ); ?>">Скинути</a>
 			</form>
 
 			<?php if ( $error ) : ?>
@@ -215,4 +215,4 @@ endif;
 	}
 }
 
-RP_Payparts_Banks_Page::init();
+RozetkaPay_Payparts_Banks_Page::init();

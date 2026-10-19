@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class RP_Payparts_Assets_Manager {
+class RozetkaPay_Payparts_Assets_Manager {
 
 	/**
 	 * Конструктор
@@ -30,7 +30,7 @@ class RP_Payparts_Assets_Manager {
 		// Основні стилі
 		wp_enqueue_style(
 			'rozetkapay-payparts-frontend',
-			RP_PAYPARTS_PLUGIN_URL . 'assets/css/frontend.css',
+			ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/css/frontend.css',
 			array(),
 			$this->get_asset_version( 'assets/css/frontend.css' )
 		);
@@ -38,7 +38,7 @@ class RP_Payparts_Assets_Manager {
 		// Додаткові стилі для мобільної версії
 		wp_enqueue_style(
 			'rozetkapay-payparts-mobile',
-			RP_PAYPARTS_PLUGIN_URL . 'assets/css/mobile.css',
+			ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/css/mobile.css',
 			array( 'rozetkapay-payparts-frontend' ),
 			$this->get_asset_version( 'assets/css/mobile.css' )
 		);
@@ -48,14 +48,14 @@ class RP_Payparts_Assets_Manager {
 		// після wp_head() і браузер ігнорує ці стилі — саме тому картки не мали CSS.
 		wp_enqueue_style(
 			'rozetkapay-payparts-slider',
-			RP_PAYPARTS_PLUGIN_URL . 'assets/css/slider.css',
+			ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/css/slider.css',
 			array( 'rozetkapay-payparts-frontend' ),
 			$this->get_asset_version( 'assets/css/slider.css' )
 		);
 
 		wp_enqueue_style(
 			'rozetkapay-payparts-widget',
-			RP_PAYPARTS_PLUGIN_URL . 'assets/css/widget.css',
+			ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/css/widget.css',
 			array( 'rozetkapay-payparts-frontend' ),
 			$this->get_asset_version( 'assets/css/widget.css' )
 		);
@@ -64,7 +64,7 @@ class RP_Payparts_Assets_Manager {
 		if ( is_checkout() ) {
 			wp_enqueue_script(
 				'rozetkapay-payparts-checkout',
-				RP_PAYPARTS_PLUGIN_URL . 'assets/js/frontend.js',
+				ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/js/frontend.js',
 				array( 'jquery' ),
 				$this->get_asset_version( 'assets/js/frontend.js' ),
 				true
@@ -73,11 +73,11 @@ class RP_Payparts_Assets_Manager {
 			// Локалізація для JS
 			wp_localize_script(
 				'rozetkapay-payparts-checkout',
-				'rpPayparts',
+				'rozetkapayPayparts',
 				array(
 					'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
-					'nonce'          => wp_create_nonce( 'rp_payparts_nonce' ),
-					'assetsUrl'      => RP_PAYPARTS_PLUGIN_URL . 'assets/',
+					'nonce'          => wp_create_nonce( 'rozetkapay_payparts_nonce' ),
+					'assetsUrl'      => ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/',
 					'enableAdvanced' => false, // Увімкнути розширені функції
 					'strings'        => array(
 						'selectOption' => __( 'Будь ласка, оберіть варіант оплати', 'rozetkapay-payparts' ),
@@ -100,14 +100,14 @@ class RP_Payparts_Assets_Manager {
 
 		wp_enqueue_style(
 			'rozetkapay-payparts-admin',
-			RP_PAYPARTS_PLUGIN_URL . 'assets/css/admin.css',
+			ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/css/admin.css',
 			array(),
 			$this->get_asset_version( 'assets/css/admin.css' )
 		);
 
 		wp_enqueue_script(
 			'rozetkapay-payparts-admin',
-			RP_PAYPARTS_PLUGIN_URL . 'assets/js/admin.js',
+			ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/js/admin.js',
 			array( 'jquery' ),
 			$this->get_asset_version( 'assets/js/admin.js' ),
 			true
@@ -116,10 +116,10 @@ class RP_Payparts_Assets_Manager {
 		// Локалізація для адмін JS
 		wp_localize_script(
 			'rozetkapay-payparts-admin',
-			'rpPaypartsAdmin',
+			'rozetkapayPaypartsAdmin',
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'rp_admin_nonce' ),
+				'nonce'   => wp_create_nonce( 'rozetkapay_payparts_admin_nonce' ),
 				'strings' => array(
 					'confirmDelete'   => __( 'Ви впевнені?', 'rozetkapay-payparts' ),
 					'saved'           => __( 'Збережено', 'rozetkapay-payparts' ),
@@ -158,6 +158,7 @@ class RP_Payparts_Assets_Manager {
 			if ( $post && (
 				has_shortcode( $post->post_content, 'woocommerce_checkout' ) ||
 				has_shortcode( $post->post_content, 'woocommerce_cart' ) ||
+				has_shortcode( $post->post_content, 'rozetkapay_payparts_widget' ) ||
 				has_shortcode( $post->post_content, 'rp_payparts_widget' )
 			) ) {
 				return true;
@@ -172,7 +173,7 @@ class RP_Payparts_Assets_Manager {
 	 */
 	private function should_load_admin_assets( $hook ) {
 		// Сторінка RozetkaPay в меню WooCommerce
-		if ( 'woocommerce_page_rp-payparts' === $hook ) {
+		if ( 'woocommerce_page_rozetkapay-payparts' === $hook ) {
 			return true;
 		}
 
@@ -198,13 +199,13 @@ class RP_Payparts_Assets_Manager {
 	 * Отримати версію файлу для cache busting
 	 */
 	private function get_asset_version( $asset_path ) {
-		$full_path = RP_PAYPARTS_PLUGIN_PATH . $asset_path;
+		$full_path = ROZETKAPAY_PAYPARTS_PLUGIN_PATH . $asset_path;
 
 		if ( file_exists( $full_path ) ) {
 			return filemtime( $full_path );
 		}
 
-		return RP_PAYPARTS_VERSION;
+		return ROZETKAPAY_PAYPARTS_VERSION;
 	}
 
 	/**
@@ -219,7 +220,7 @@ class RP_Payparts_Assets_Manager {
 		$missing_files = array();
 
 		foreach ( $critical_files as $file ) {
-			if ( ! file_exists( RP_PAYPARTS_PLUGIN_PATH . $file ) ) {
+			if ( ! file_exists( ROZETKAPAY_PAYPARTS_PLUGIN_PATH . $file ) ) {
 				$missing_files[] = $file;
 			}
 		}

@@ -12,7 +12,7 @@ if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
 	return;
 }
 
-class RP_Payparts_Gateway extends WC_Payment_Gateway {
+class RozetkaPay_Payparts_Gateway extends WC_Payment_Gateway {
 	public $order_ref_prefix;
 	public $enable_status_polling;
 
@@ -114,13 +114,13 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
 		$request_uri    = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 
-		rp_payparts_log( 'RozetkaPay Payparts Callback: === STARTED ===' );
-		rp_payparts_log( 'RozetkaPay Callback: Request method: ' . $request_method );
-		rp_payparts_log( 'RozetkaPay Callback: Request URI: ' . $request_uri );
+		rozetkapay_payparts_log( 'RozetkaPay Payparts Callback: === STARTED ===' );
+		rozetkapay_payparts_log( 'RozetkaPay Callback: Request method: ' . $request_method );
+		rozetkapay_payparts_log( 'RozetkaPay Callback: Request URI: ' . $request_uri );
 
 		// GET-запити відхиляємо
 		if ( $request_method === 'GET' ) {
-			rp_payparts_log( 'RozetkaPay Callback: GET request - returning error' );
+			rozetkapay_payparts_log( 'RozetkaPay Callback: GET request - returning error' );
 			http_response_code( 400 );
 			echo 'Empty payload';
 			exit;
@@ -130,14 +130,14 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		$payload = file_get_contents( 'php://input' );
 
 		if ( empty( $payload ) ) {
-			rp_payparts_log( 'RozetkaPay Callback: Empty payload' );
+			rozetkapay_payparts_log( 'RozetkaPay Callback: Empty payload' );
 			http_response_code( 400 );
 			echo 'Empty payload';
 			exit;
 		}
 
-		rp_payparts_log( 'RozetkaPay Callback: Payload length: ' . strlen( $payload ) );
-		rp_payparts_log( 'RozetkaPay Callback RAW data: ' . $payload ); // RAW-логування
+		rozetkapay_payparts_log( 'RozetkaPay Callback: Payload length: ' . strlen( $payload ) );
+		rozetkapay_payparts_log( 'RozetkaPay Callback RAW data: ' . $payload ); // RAW-логування
 
 		// ВИПРАВЛЕНО: правильне отримання підпису
 		$signature        = '';
@@ -151,7 +151,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		foreach ( $possible_headers as $header ) {
 			if ( isset( $_SERVER[ $header ] ) && ! empty( $_SERVER[ $header ] ) ) {
 				$signature = sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
-				rp_payparts_log( "RozetkaPay Callback: Got signature from $header" );
+				rozetkapay_payparts_log( "RozetkaPay Callback: Got signature from $header" );
 				break;
 			}
 		}
@@ -169,12 +169,12 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		$gateway_settings = get_option( 'woocommerce_rp_payparts_settings', array() );
 		$test_mode        = isset( $gateway_settings['test_mode'] ) && $gateway_settings['test_mode'] === 'yes';
 
-		rp_payparts_log( 'RozetkaPay Callback: Test mode: ' . ( $test_mode ? 'YES' : 'NO' ) );
+		rozetkapay_payparts_log( 'RozetkaPay Callback: Test mode: ' . ( $test_mode ? 'YES' : 'NO' ) );
 
 		// ВИПРАВЛЕНО: правильна перевірка підпису
 		if ( ! $test_mode ) {
 			if ( empty( $signature ) ) {
-				rp_payparts_log( 'RozetkaPay Callback Error: Missing signature in production mode' );
+				rozetkapay_payparts_log( 'RozetkaPay Callback Error: Missing signature in production mode' );
 				http_response_code( 403 );
 				echo 'Missing signature';
 				exit;
@@ -182,31 +182,31 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 			$api = $this->get_api_client();
 			if ( ! $api || ! $api->verify_callback_enhanced( $payload, $signature ) ) {
-				rp_payparts_log( 'RozetkaPay Callback Error: Invalid signature' );
+				rozetkapay_payparts_log( 'RozetkaPay Callback Error: Invalid signature' );
 				http_response_code( 403 );
 				echo 'Invalid signature';
 				exit;
 			}
-			rp_payparts_log( 'RozetkaPay Callback: Signature verified successfully' );
+			rozetkapay_payparts_log( 'RozetkaPay Callback: Signature verified successfully' );
 		} else {
-			rp_payparts_log( 'RozetkaPay Callback: TEST MODE - skipping signature verification' );
+			rozetkapay_payparts_log( 'RozetkaPay Callback: TEST MODE - skipping signature verification' );
 		}
 
 		// Парсимо JSON
 		$data = json_decode( $payload, true );
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			rp_payparts_log( 'RozetkaPay Callback Error: Invalid JSON - ' . json_last_error_msg() );
+			rozetkapay_payparts_log( 'RozetkaPay Callback Error: Invalid JSON - ' . json_last_error_msg() );
 			http_response_code( 400 );
 			echo 'Invalid JSON';
 			exit;
 		}
 
-		rp_payparts_log( 'RozetkaPay Callback: Successfully decoded JSON' );
-		rp_payparts_log( 'RozetkaPay Callback decoded data: ' . wp_json_encode( $data ) );
+		rozetkapay_payparts_log( 'RozetkaPay Callback: Successfully decoded JSON' );
+		rozetkapay_payparts_log( 'RozetkaPay Callback decoded data: ' . wp_json_encode( $data ) );
 
 		// Тестовий callback
 		if ( isset( $data['test'] ) && $data['test'] === true ) {
-			rp_payparts_log( 'RozetkaPay Callback: Test callback processed' );
+			rozetkapay_payparts_log( 'RozetkaPay Callback: Test callback processed' );
 			http_response_code( 200 );
 			echo 'OK';
 			exit;
@@ -241,31 +241,31 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		}
 
 		if ( ! $external_id || ! $status ) {
-			rp_payparts_log( 'RozetkaPay Callback Error: Missing external_id or status' );
-			rp_payparts_log( 'Available data: ' . wp_json_encode( $data ) );
+			rozetkapay_payparts_log( 'RozetkaPay Callback Error: Missing external_id or status' );
+			rozetkapay_payparts_log( 'Available data: ' . wp_json_encode( $data ) );
 			http_response_code( 400 );
 			echo 'Missing external_id or status';
 			exit;
 		}
 
-		rp_payparts_log( "RozetkaPay Callback: external_id=$external_id, status=$status, operation_id=$operation_id" );
+		rozetkapay_payparts_log( "RozetkaPay Callback: external_id=$external_id, status=$status, operation_id=$operation_id" );
 
 		// Пошук замовлення
 		$order = $this->find_order_by_reference( $external_id, $operation_id );
 
 		if ( ! $order ) {
-			rp_payparts_log( 'RozetkaPay Callback Error: Order not found for external_id=' . $external_id );
+			rozetkapay_payparts_log( 'RozetkaPay Callback Error: Order not found for external_id=' . $external_id );
 			http_response_code( 404 );
 			echo 'Order not found';
 			exit;
 		}
 
 		$order_id = $order->get_id();
-		rp_payparts_log( "RozetkaPay Callback: Found order #$order_id" );
+		rozetkapay_payparts_log( "RozetkaPay Callback: Found order #$order_id" );
 
 		// Перевірка на дублювання подій
-		if ( $operation_id && $order->get_meta( '_rp_seen_event_' . $operation_id, true ) ) {
-			rp_payparts_log( 'RozetkaPay Callback: Duplicate event ' . $operation_id );
+		if ( $operation_id && rozetkapay_payparts_get_order_meta( $order, '_rozetkapay_payparts_seen_event_' . $operation_id ) ) {
+			rozetkapay_payparts_log( 'RozetkaPay Callback: Duplicate event ' . $operation_id );
 			http_response_code( 200 );
 			echo 'OK';
 			exit;
@@ -280,7 +280,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 					in_array( strtolower( $status ), array( 'refund', 'refunded', 'refund_successful', 'refunding' ), true ) ||
 					( strpos( strtolower( $status ), 'refund' ) !== false );
 
-		rp_payparts_log( "RozetkaPay Callback: method=$method, is_refund=" . ( $is_refund ? 'YES' : 'NO' ) . ", amount=$amount" );
+		rozetkapay_payparts_log( "RozetkaPay Callback: method=$method, is_refund=" . ( $is_refund ? 'YES' : 'NO' ) . ", amount=$amount" );
 
 		// НОВЕ: обробка повернень PayParts
 		if ( $is_refund ) {
@@ -288,11 +288,11 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 			// Позначаємо подію як оброблену
 			if ( $operation_id ) {
-				$order->update_meta_data( '_rp_seen_event_' . $operation_id, current_time( 'mysql' ) );
+				$order->update_meta_data( '_rozetkapay_payparts_seen_event_' . $operation_id, current_time( 'mysql' ) );
 				$order->save();
 			}
 
-			rp_payparts_log( "RozetkaPay Callback: Refund processed for order #$order_id" );
+			rozetkapay_payparts_log( "RozetkaPay Callback: Refund processed for order #$order_id" );
 			http_response_code( 200 );
 			echo 'OK';
 			exit;
@@ -309,7 +309,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				if ( $order->has_status( array( 'pending', 'on-hold' ) ) ) {
 					$order->payment_complete();
 					$order->add_order_note( 'PayParts: платіж успішно проведено через RozetkaPay (callback)' );
-					rp_payparts_log( "RozetkaPay Callback: Order #$order_id marked as completed" );
+					rozetkapay_payparts_log( "RozetkaPay Callback: Order #$order_id marked as completed" );
 				}
 				break;
 
@@ -320,7 +320,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			case 'declined':
 				if ( ! $order->has_status( 'failed' ) ) {
 					$order->update_status( 'failed', 'PayParts: платіж відхилено через RozetkaPay (callback)' );
-					rp_payparts_log( "RozetkaPay Callback: Order #$order_id marked as failed" );
+					rozetkapay_payparts_log( "RozetkaPay Callback: Order #$order_id marked as failed" );
 				}
 				break;
 
@@ -328,7 +328,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			case 'processing':
 				if ( ! $order->has_status( array( 'pending', 'on-hold', 'processing' ) ) ) {
 					$order->update_status( 'on-hold', 'PayParts: платіж очікує обробки (callback)' );
-					rp_payparts_log( "RozetkaPay Callback: Order #$order_id marked as pending" );
+					rozetkapay_payparts_log( "RozetkaPay Callback: Order #$order_id marked as pending" );
 				}
 				break;
 
@@ -336,22 +336,22 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			case 'canceled':
 				if ( ! $order->has_status( 'cancelled' ) ) {
 					$order->update_status( 'cancelled', 'PayParts: платіж скасовано (callback)' );
-					rp_payparts_log( "RozetkaPay Callback: Order #$order_id marked as cancelled" );
+					rozetkapay_payparts_log( "RozetkaPay Callback: Order #$order_id marked as cancelled" );
 				}
 				break;
 
 			default:
-				rp_payparts_log( "RozetkaPay Callback: Unknown status '$status' for order #$order_id" );
+				rozetkapay_payparts_log( "RozetkaPay Callback: Unknown status '$status' for order #$order_id" );
 				$order->add_order_note( 'PayParts: невідомий статус платежу: ' . $status );
 		}
 
 		// Позначаємо подію як оброблену
 		if ( $operation_id ) {
-			$order->update_meta_data( '_rp_seen_event_' . $operation_id, current_time( 'mysql' ) );
+			$order->update_meta_data( '_rozetkapay_payparts_seen_event_' . $operation_id, current_time( 'mysql' ) );
 			$order->save();
 		}
 
-		rp_payparts_log( 'RozetkaPay Callback: === COMPLETED SUCCESSFULLY ===' );
+		rozetkapay_payparts_log( 'RozetkaPay Callback: === COMPLETED SUCCESSFULLY ===' );
 		http_response_code( 200 );
 		echo 'OK';
 		exit;
@@ -370,15 +370,14 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			}
 		}
 
-		// Пошук за мета-полем _rp_reference
-		$orders = wc_get_orders(
+		// Пошук за мета-полем _rozetkapay_payparts_reference
+		$orders = rozetkapay_payparts_get_orders_by_meta(
+			'_rozetkapay_payparts_reference',
+			$external_id,
 			array(
 				'limit'          => 1,
 				'return'         => 'objects',
 				'payment_method' => 'rp_payparts',
-				'meta_key'       => '_rp_reference',
-				'meta_value'     => $external_id,
-				'meta_compare'   => '=',
 			)
 		);
 
@@ -388,14 +387,13 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 		// Пошук за operation_id, якщо є
 		if ( $operation_id ) {
-			$orders = wc_get_orders(
+			$orders = rozetkapay_payparts_get_orders_by_meta(
+				'_rozetkapay_payparts_payment_id',
+				$operation_id,
 				array(
 					'limit'          => 1,
 					'return'         => 'objects',
 					'payment_method' => 'rp_payparts',
-					'meta_key'       => '_rp_payparts_payment_id',
-					'meta_value'     => $operation_id,
-					'meta_compare'   => '=',
 				)
 			);
 
@@ -419,13 +417,13 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			$refund_amount = $order_total;
 		}
 
-		rp_payparts_log( "PayParts Callback Refund: processing order #$order_id, amount=$refund_amount of $order_total" );
+		rozetkapay_payparts_log( "PayParts Callback Refund: processing order #$order_id, amount=$refund_amount of $order_total" );
 
 		// Перевіряємо, чи ми вже обробляли це повернення
 		$refund_id_key = isset( $details['rrn'] ) ? $details['rrn'] : 'callback_' . current_time( 'timestamp' );
 
-		if ( $order->get_meta( '_rp_callback_refund_' . $refund_id_key, true ) ) {
-			rp_payparts_log( "PayParts Callback Refund: already processed for key $refund_id_key" );
+		if ( rozetkapay_payparts_get_order_meta( $order, '_rozetkapay_payparts_callback_refund_' . $refund_id_key ) ) {
+			rozetkapay_payparts_log( "PayParts Callback Refund: already processed for key $refund_id_key" );
 			return;
 		}
 
@@ -452,21 +450,22 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			);
 
 			if ( $refund_id && ! is_wp_error( $refund_id ) ) {
-				rp_payparts_log( "PayParts Callback Refund: created WC_Refund #$refund_id for amount $amount_to_refund" );
+				rozetkapay_payparts_log( "PayParts Callback Refund: created WC_Refund #$refund_id for amount $amount_to_refund" );
 
 				// Зберігаємо RRN, якщо є
 				if ( isset( $details['rrn'] ) && $details['rrn'] ) {
-					update_post_meta( $refund_id, '_rp_refund_rrn', $details['rrn'] );
+					$refund_id->update_meta_data( '_rozetkapay_payparts_refund_rrn', $details['rrn'] );
+					$refund_id->save();
 				}
 
 				// Позначаємо, що повернення оброблено
-				$order->update_meta_data( '_rp_callback_refund_' . $refund_id_key, current_time( 'mysql' ) );
+				$order->update_meta_data( '_rozetkapay_payparts_callback_refund_' . $refund_id_key, current_time( 'mysql' ) );
 
 				// Визначаємо статус замовлення
 				$total_after_refund = $total_refunded + $amount_to_refund;
 				if ( $total_after_refund >= $order_total ) {
 					$order->update_status( 'refunded', 'PayParts: повне повернення оброблено через callback' );
-					rp_payparts_log( "PayParts Callback Refund: order #$order_id status changed to refunded" );
+					rozetkapay_payparts_log( "PayParts Callback Refund: order #$order_id status changed to refunded" );
 				} else {
 					$order->add_order_note(
 						sprintf(
@@ -479,16 +478,16 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 				$order->save();
 			} else {
-				rp_payparts_log(
+				rozetkapay_payparts_log(
 					'PayParts Callback Refund: Failed to create WC_Refund: ' .
 					( is_wp_error( $refund_id ) ? $refund_id->get_error_message() : 'unknown error' )
 				);
 			}
 		} else {
-			rp_payparts_log( "PayParts Callback Refund: no new refund needed, already refunded $total_refunded" );
+			rozetkapay_payparts_log( "PayParts Callback Refund: no new refund needed, already refunded $total_refunded" );
 
 			// У будь-якому разі позначаємо як оброблений
-			$order->update_meta_data( '_rp_callback_refund_' . $refund_id_key, current_time( 'mysql' ) );
+			$order->update_meta_data( '_rozetkapay_payparts_callback_refund_' . $refund_id_key, current_time( 'mysql' ) );
 			$order->save();
 		}
 	}
@@ -497,7 +496,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 * Показати інструкцію на thank you сторінці
 	 */
 	public function thankyou_page_instruction( $order_id ) {
-		$instruction_data = WC()->session->get( 'rp_show_mobile_instruction' );
+		$instruction_data = WC()->session->get( 'rozetkapay_payparts_show_mobile_instruction' );
 
 		if ( ! $instruction_data || $instruction_data['order_id'] != $order_id ) {
 			return;
@@ -505,17 +504,17 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 		// Підключаємо скрипт
 		wp_enqueue_script(
-			'rp-mobile-instruction',
-			RP_PAYPARTS_PLUGIN_URL . 'assets/js/mobile-instruction.js',
+			'rozetkapay-payparts-mobile-instruction',
+			ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/js/mobile-instruction.js',
 			array( 'jquery' ),
-			RP_PAYPARTS_VERSION,
+			ROZETKAPAY_PAYPARTS_VERSION,
 			true
 		);
 
-		wp_localize_script( 'rp-mobile-instruction', 'rp_mobile_instruction', $instruction_data );
+		wp_localize_script( 'rozetkapay-payparts-mobile-instruction', 'rozetkapay_payparts_mobile_instruction', $instruction_data );
 
 		// Очищаємо прапорець, щоб не показувати повторно
-		WC()->session->set( 'rp_show_mobile_instruction', null );
+		WC()->session->set( 'rozetkapay_payparts_show_mobile_instruction', null );
 
 		if ( $this->debug_mode ) {
 			$order = wc_get_order( $order_id );
@@ -649,9 +648,9 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		if ( is_cart() || is_checkout() ) {
 			wp_enqueue_style(
 				'rozetkapay-payparts-frontend',
-				RP_PAYPARTS_PLUGIN_URL . 'assets/css/frontend.css',
+				ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/css/frontend.css',
 				array(),
-				RP_PAYPARTS_VERSION
+				ROZETKAPAY_PAYPARTS_VERSION
 			);
 		}
 	}
@@ -832,7 +831,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 */
 	private function get_api_client() {
 		if ( ! isset( $this->api_client ) ) {
-			$this->api_client = new RP_Payparts_API( $this->api_user, $this->api_pass, $this->test_mode );
+			$this->api_client = new RozetkaPay_Payparts_API( $this->api_user, $this->api_pass, $this->test_mode );
 		}
 		return $this->api_client;
 	}
@@ -946,14 +945,14 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			}
 
 			if ( $this->debug_mode && $cart_total > 0 ) {
-				rp_payparts_log( "RozetkaPay: Test mode filtering - cart total: {$cart_total}, filtered options: " . count( $filtered_options ) );
+				rozetkapay_payparts_log( "RozetkaPay: Test mode filtering - cart total: {$cart_total}, filtered options: " . count( $filtered_options ) );
 			}
 
 			return $filtered_options;
 		}
 
 		// Прагнемо дістати з кешу
-		$banks = get_transient( 'rp_payparts_banks' );
+		$banks = get_transient( 'rozetkapay_payparts_banks' );
 
 		if ( false === $banks ) {
 			// Завантажуємо з API
@@ -961,7 +960,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			$banks = $api->fetch_banks();
 
 			if ( ! empty( $banks ) && ! is_wp_error( $banks ) ) {
-				set_transient( 'rp_payparts_banks', $banks, HOUR_IN_SECONDS );
+				set_transient( 'rozetkapay_payparts_banks', $banks, HOUR_IN_SECONDS );
 			} else {
 				return array();
 			}
@@ -994,7 +993,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				// КРИТИЧНА ПЕРЕВІРКА: пропускаємо банк, якщо сума кошика менша за мінімум
 				if ( $bank_min_amount > 0 && $cart_total < $bank_min_amount ) {
 					if ( $this->debug_mode ) {
-						rp_payparts_log( "RozetkaPay: Bank {$slug} filtered out - cart total {$cart_total} < min {$bank_min_amount}" );
+						rozetkapay_payparts_log( "RozetkaPay: Bank {$slug} filtered out - cart total {$cart_total} < min {$bank_min_amount}" );
 					}
 					continue;
 				}
@@ -1002,7 +1001,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				// Перевіряємо максимум також
 				if ( $bank_max_amount > 0 && $cart_total > $bank_max_amount ) {
 					if ( $this->debug_mode ) {
-						rp_payparts_log( "RozetkaPay: Bank {$slug} filtered out - cart total {$cart_total} > max {$bank_max_amount}" );
+						rozetkapay_payparts_log( "RozetkaPay: Bank {$slug} filtered out - cart total {$cart_total} > max {$bank_max_amount}" );
 					}
 					continue;
 				}
@@ -1031,7 +1030,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 					}
 
 					if ( $period > 0 ) {
-						$bank_name = rp_payparts_get_bank_name( $slug );
+						$bank_name = rozetkapay_payparts_get_bank_name( $slug );
 
 						$label = sprintf(
 							'%s — %d %s',
@@ -1047,7 +1046,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		}
 
 		if ( $this->debug_mode && $cart_total > 0 ) {
-			rp_payparts_log( "RozetkaPay: Production mode filtering - cart total: {$cart_total}, filtered options: " . count( $options ) );
+			rozetkapay_payparts_log( "RozetkaPay: Production mode filtering - cart total: {$cart_total}, filtered options: " . count( $options ) );
 		}
 
 		return $options;
@@ -1057,7 +1056,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 * Отримати правильне відмінювання слова «місяць»
 	 */
 	private function get_month_declension( $number ) {
-		return rp_payparts_get_month_declension( $number );
+		return rozetkapay_payparts_get_month_declension( $number );
 	}
 
 	/**
@@ -1099,7 +1098,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		}
 
 		// Nonce-поле для безпеки
-		wp_nonce_field( 'rp_payparts_nonce', 'rp_payparts_nonce_field' );
+		wp_nonce_field( 'rozetkapay_payparts_nonce', 'rozetkapay_payparts_nonce_field' );
 
 		// Вибір стилю відображення
 		if ( 'slider' === $this->display_style ) {
@@ -1133,22 +1132,22 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 * Рендер інтерфейсу повзунка
 	 */
 	private function render_slider_interface( $options ) {
-		$css_path = RP_PAYPARTS_PLUGIN_PATH . 'assets/css/slider.css';
-		$js_path  = RP_PAYPARTS_PLUGIN_PATH . 'assets/js/slider.js';
+		$css_path = ROZETKAPAY_PAYPARTS_PLUGIN_PATH . 'assets/css/slider.css';
+		$js_path  = ROZETKAPAY_PAYPARTS_PLUGIN_PATH . 'assets/js/slider.js';
 
 		// ПРИМУСОВО підключаємо стилі і скрипти
 		wp_enqueue_style(
 			'rozetkapay-payparts-slider',
-			RP_PAYPARTS_PLUGIN_URL . 'assets/css/slider.css',
+			ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/css/slider.css',
 			array(),
-			RP_PAYPARTS_VERSION
+			ROZETKAPAY_PAYPARTS_VERSION
 		);
 
 		wp_enqueue_script(
 			'rozetkapay-payparts-slider',
-			RP_PAYPARTS_PLUGIN_URL . 'assets/js/slider.js',
+			ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/js/slider.js',
 			array( 'jquery' ),
-			RP_PAYPARTS_VERSION,
+			ROZETKAPAY_PAYPARTS_VERSION,
 			true
 		);
 
@@ -1204,13 +1203,13 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		// Готуємо дані для JavaScript
 		wp_localize_script(
 			'rozetkapay-payparts-slider',
-			'rozetkapay_slider_data',
+			'rozetkapay_payparts_slider_data',
 			array(
 				'banks'      => $banks_data,
 				'terms'      => $unique_terms,
 				'cart_total' => $cart_total,
 				'currency'   => get_woocommerce_currency(),
-				'plugin_url' => RP_PAYPARTS_PLUGIN_URL,
+				'plugin_url' => ROZETKAPAY_PAYPARTS_PLUGIN_URL,
 				'messages'   => array(
 					'months'        => __( 'місяців', 'rozetkapay-payparts' ),
 					'per_month'     => __( 'грн/міс', 'rozetkapay-payparts' ),
@@ -1239,13 +1238,13 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 						<?php foreach ( $banks_data as $bank_slug => $bank_info ) : ?>
 							<label class="rp-bank-option <?php echo $bank_slug === $default_bank ? 'active' : ''; ?>" data-bank="<?php echo esc_attr( $bank_slug ); ?>">
 								<input type="radio" 
-										name="rp_selected_bank" 
+										name="rozetkapay_payparts_selected_bank" 
 										value="<?php echo esc_attr( $bank_slug ); ?>"
 										<?php checked( $bank_slug, $default_bank ); ?>>
 								<div class="rp-bank-card">
 									<div class="rp-bank-logo">
-										<img src="<?php echo esc_url( RP_PAYPARTS_PLUGIN_URL . 'assets/images/' . $bank_slug . '-logo.png' ); ?>" 
-											alt="<?php echo esc_attr( $bank_info['name'] ); ?>" 
+										<img src="<?php echo esc_url( ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/images/' . $bank_slug . '-logo.png' ); ?>" 
+											alt="<?php echo esc_attr( $bank_info['name'] ); ?>"
 											onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
 										<div class="rp-bank-fallback" style="display:none;">
 											<?php echo esc_html( mb_substr( $bank_info['name'], 0, 2 ) ); ?>
@@ -1312,8 +1311,8 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 				<!-- Інформація про вибраний банк -->
 				<div class="rp-current-bank-info">
 					<div class="rp-bank-logo">
-						<img src="<?php echo esc_url( RP_PAYPARTS_PLUGIN_URL . 'assets/images/' . $default_bank . '-logo.png' ); ?>" 
-							alt="Bank Logo" 
+						<img src="<?php echo esc_url( ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/images/' . $default_bank . '-logo.png' ); ?>" 
+							alt="Bank Logo"
 							onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
 						<span class="rp-bank-fallback" style="display: none;">
 							<?php echo esc_html( mb_substr( $banks_data[ $default_bank ]['name'], 0, 2 ) ); ?>
@@ -1331,7 +1330,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			</div>
 			
 			<!-- Приховане поле для передачі вибраного значення -->
-			<input type="hidden" name="rp_payparts_option" value="<?php echo esc_attr( $default_key ); ?>" required>
+			<input type="hidden" name="rozetkapay_payparts_option" value="<?php echo esc_attr( $default_key ); ?>" required>
 		</div>
 		<?php
 	}
@@ -1345,7 +1344,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		echo '<div class="rp-payparts-list">';
 		foreach ( $options as $key => $label ) {
 			echo '<label class="rp-payparts-list-item">';
-			echo '<input type="radio" name="rp_payparts_option" value="' . esc_attr( $key ) . '" required>';
+			echo '<input type="radio" name="rozetkapay_payparts_option" value="' . esc_attr( $key ) . '" required>';
 			echo '<span>' . esc_html( $label ) . '</span>';
 			echo '</label>';
 		}
@@ -1357,8 +1356,8 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 * Рендер однієї картки вибору
 	 */
 	private function render_payment_option( $key, $label ) {
-		echo '<label class="rp-payparts-option" for="rp_option_' . esc_attr( $key ) . '">';
-		echo '<input type="radio" id="rp_option_' . esc_attr( $key ) . '" name="rp_payparts_option" value="' . esc_attr( $key ) . '" required>';
+		echo '<label class="rp-payparts-option" for="rozetkapay_payparts_option_' . esc_attr( $key ) . '">';
+		echo '<input type="radio" id="rozetkapay_payparts_option_' . esc_attr( $key ) . '" name="rozetkapay_payparts_option" value="' . esc_attr( $key ) . '" required>';
 		echo '<div class="rp-option-content">';
 		echo '<span class="rp-bank-name">' . esc_html( $label ) . '</span>';
 		echo '</div>';
@@ -1370,15 +1369,15 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 * Зберігаємо вибір клієнта
 	 */
 	public function store_selection( $order_id ) {
-		if ( ! isset( $_POST['rp_payparts_option'] ) || ! isset( $_POST['rp_payparts_nonce_field'] ) ) {
+		if ( ! isset( $_POST['rozetkapay_payparts_option'] ) || ! isset( $_POST['rozetkapay_payparts_nonce_field'] ) ) {
 			return;
 		}
 
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['rp_payparts_nonce_field'] ) ), 'rp_payparts_nonce' ) ) {
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['rozetkapay_payparts_nonce_field'] ) ), 'rozetkapay_payparts_nonce' ) ) {
 			return;
 		}
 
-		$option = sanitize_text_field( wp_unslash( $_POST['rp_payparts_option'] ) );
+		$option = sanitize_text_field( wp_unslash( $_POST['rozetkapay_payparts_option'] ) );
 
 		if ( empty( $option ) || ! strpos( $option, '|' ) ) {
 			return;
@@ -1389,23 +1388,27 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			return;
 		}
 
-		update_post_meta( $order_id, '_rp_payparts_option', $option );
-
-		if ( isset( $_POST['rp_selected_bank'] ) ) {
-			$selected_bank = sanitize_text_field( wp_unslash( $_POST['rp_selected_bank'] ) );
-			update_post_meta( $order_id, '_rp_payparts_selected_bank', $selected_bank );
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
 		}
 
+		$order->update_meta_data( '_rozetkapay_payparts_option', $option );
+
+		if ( isset( $_POST['rozetkapay_payparts_selected_bank'] ) ) {
+			$selected_bank = sanitize_text_field( wp_unslash( $_POST['rozetkapay_payparts_selected_bank'] ) );
+			$order->update_meta_data( '_rozetkapay_payparts_selected_bank', $selected_bank );
+		}
+
+		$order->save();
+
 		if ( $this->debug_mode ) {
-			$order = wc_get_order( $order_id );
-			if ( $order ) {
-				$order->add_order_note(
-					sprintf(
-						'RozetkaPay Debug: Збережено вибір – %s',
-						$option
-					)
-				);
-			}
+			$order->add_order_note(
+				sprintf(
+					'RozetkaPay Debug: Збережено вибір – %s',
+					$option
+				)
+			);
 		}
 	}
 
@@ -1414,23 +1417,23 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 */
 	public function process_payment( $order_id ) {
 		if ( $this->debug_mode ) {
-			rp_payparts_log( 'RozetkaPay DEBUG: process_payment() викликано для замовлення ' . $order_id );
+			rozetkapay_payparts_log( 'RozetkaPay DEBUG: process_payment() викликано для замовлення ' . $order_id );
 		}
 
 		$order = wc_get_order( $order_id );
 		// Переконуємось, що external_id (reference) збережено для PayParts
-		if ( function_exists( 'rp_payparts_build_reference' ) && isset( $order ) && $order ) {
-			$external_id_tmp = $order->get_meta( '_rp_reference', true );
+		if ( function_exists( 'rozetkapay_payparts_build_reference' ) && isset( $order ) && $order ) {
+			$external_id_tmp = rozetkapay_payparts_get_order_meta( $order, '_rozetkapay_payparts_reference' );
 			if ( empty( $external_id_tmp ) ) {
-				$external_id_tmp = rp_payparts_build_reference( $order, $this->order_ref_prefix );
+				$external_id_tmp = rozetkapay_payparts_build_reference( $order, $this->order_ref_prefix );
 			}
 			// необов’язковий окремий ключ для зв’язку payparts
-			$order->update_meta_data( '_rp_payparts_external_id', $external_id_tmp );
+			$order->update_meta_data( '_rozetkapay_payparts_external_id', $external_id_tmp );
 			$order->save();
 		}
 
-		if ( function_exists( 'rp_payparts_build_reference' ) && $order ) {
-			rp_payparts_build_reference( $order, $this->order_ref_prefix ); }
+		if ( function_exists( 'rozetkapay_payparts_build_reference' ) && $order ) {
+			rozetkapay_payparts_build_reference( $order, $this->order_ref_prefix ); }
 
 		if ( ! $order ) {
 			wc_add_notice( __( 'Помилка отримання замовлення.', 'rozetkapay-payparts' ), 'error' );
@@ -1446,7 +1449,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			);
 		}
 
-		$selection = get_post_meta( $order_id, '_rp_payparts_option', true );
+		$selection = rozetkapay_payparts_get_order_meta( $order_id, '_rozetkapay_payparts_option' );
 
 		if ( ! $selection ) {
 			wc_add_notice( __( 'Будь ласка, оберіть варіант оплати частинами.', 'rozetkapay-payparts' ), 'error' );
@@ -1492,9 +1495,10 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		if ( $this->test_mode ) {
 			$order->update_status( 'on-hold', __( 'Тестова оплата частинами створена', 'rozetkapay-payparts' ) );
 
-			update_post_meta( $order_id, '_rp_payparts_bank', $bank_id );
-			update_post_meta( $order_id, '_rp_payparts_term', $term );
-			update_post_meta( $order_id, '_rp_payparts_test_mode', 'yes' );
+			$order->update_meta_data( '_rozetkapay_payparts_bank', $bank_id );
+			$order->update_meta_data( '_rozetkapay_payparts_term', $term );
+			$order->update_meta_data( '_rozetkapay_payparts_test_mode', 'yes' );
+			$order->save();
 
 			WC()->cart->empty_cart();
 
@@ -1503,7 +1507,8 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 				$order->add_order_note( '🚀 RozetkaPay TEST: ПРИМУСОВЕ перенаправлення на: ' . $test_payment_url );
 
-				update_post_meta( $order_id, '_rp_payparts_test_redirect_url', $test_payment_url );
+				$order->update_meta_data( '_rozetkapay_payparts_test_redirect_url', $test_payment_url );
+				$order->save();
 
 				return array(
 					'result'   => 'success',
@@ -1512,7 +1517,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			}
 
 			if ( $this->debug_mode ) {
-				$bank_name = rp_payparts_get_bank_name( $bank_id );
+				$bank_name = rozetkapay_payparts_get_bank_name( $bank_id );
 				$order->add_order_note(
 					sprintf(
 						'Банк %s – залишаємося на thank you (тестовий режим)',
@@ -1568,15 +1573,15 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			}
 
 			if ( isset( $result['details']['operation_id'] ) ) {
-				update_post_meta( $order->get_id(), '_rp_payparts_payment_id', $result['details']['operation_id'] );
+				$order->update_meta_data( '_rozetkapay_payparts_payment_id', $result['details']['operation_id'] );
 			}
 
 			if ( isset( $result['action']['value'] ) ) {
-				update_post_meta( $order->get_id(), '_rp_payparts_payment_url', $result['action']['value'] );
+				$order->update_meta_data( '_rozetkapay_payparts_payment_url', $result['action']['value'] );
 			}
 
-			update_post_meta( $order->get_id(), '_rp_payparts_bank', $bank_id );
-			update_post_meta( $order->get_id(), '_rp_payparts_term', $term );
+			$order->update_meta_data( '_rozetkapay_payparts_bank', $bank_id );
+			$order->update_meta_data( '_rozetkapay_payparts_term', $term );
 
 			$order->update_status( 'on-hold', __( 'Очікується оплата частинами через RozetkaPay', 'rozetkapay-payparts' ) );
 
@@ -1596,10 +1601,10 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 					);
 				}
 			} elseif ( in_array( $bank_id, array( 'privatbank', 'monobank', 'abank' ), true ) ) {
-				$bank_name = rp_payparts_get_bank_name( $bank_id );
+				$bank_name = rozetkapay_payparts_get_bank_name( $bank_id );
 
 				WC()->session->set(
-					'rp_show_mobile_instruction',
+					'rozetkapay_payparts_show_mobile_instruction',
 					array(
 						'bank_id'   => $bank_id,
 						'bank_name' => $bank_name,
@@ -1616,7 +1621,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 					);
 				}
 			} elseif ( $this->debug_mode ) {
-					$bank_name = rp_payparts_get_bank_name( $bank_id );
+					$bank_name = rozetkapay_payparts_get_bank_name( $bank_id );
 					$order->add_order_note(
 						sprintf(
 							'Банк %s: перехід на thank you сторінку (новий банк)',
@@ -1713,7 +1718,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		$order_total = floatval( $order->get_total() );
 		if ( abs( $total_amount - $order_total ) > 0.01 ) {
 			if ( $this->debug_mode ) {
-				rp_payparts_log(
+				rozetkapay_payparts_log(
 					sprintf(
 						'RozetkaPay PayParts: products sum %.2f differs from order total %.2f, adjusting.',
 						$total_amount,
@@ -1737,8 +1742,8 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		return array(
 			'bank_name'    => $bank_id,
 			'mode'         => 'direct',
-			'external_id'  => function_exists( 'rp_payparts_build_reference' )
-				? rp_payparts_build_reference( $order, $this->order_ref_prefix )
+			'external_id'  => function_exists( 'rozetkapay_payparts_build_reference' )
+				? rozetkapay_payparts_build_reference( $order, $this->order_ref_prefix )
 				: (string) $order->get_id(),
 			'currency'     => $order->get_currency(),
 			'parts_count'  => intval( $term ),
@@ -1821,7 +1826,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 * Отримати ліміти банків з API
 	 */
 	private function get_banks_limits() {
-		return rp_payparts_get_banks_limits();
+		return rozetkapay_payparts_get_banks_limits();
 	}
 
 	/**
@@ -1832,7 +1837,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 
 		echo '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">';
 		echo '<h3>ℹ️ Інформація про плагін</h3>';
-		echo '<p><strong>Версія:</strong> ' . esc_html( RP_PAYPARTS_VERSION ) . '</p>';
+		echo '<p><strong>Версія:</strong> ' . esc_html( ROZETKAPAY_PAYPARTS_VERSION ) . '</p>';
 		echo '<p><strong>Статус:</strong> ' . ( $this->enabled === 'yes' ? '✅ Активний' : '❌ Неактивний' ) . '</p>';
 		echo '<p><strong>Режим:</strong> ' . ( $this->test_mode ? '🧪 Тестовий' : '🚀 Продакшн' ) . '</p>';
 
@@ -1859,7 +1864,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 			return 'ABank, Monobank, ПриватБанк, RozetkaPay, izibank (тестовий режим)';
 		}
 
-		$banks = get_transient( 'rp_payparts_banks' );
+		$banks = get_transient( 'rozetkapay_payparts_banks' );
 		if ( false === $banks || ! is_array( $banks ) ) {
 			return 'Завантажуються з API...';
 		}
@@ -1867,7 +1872,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		$bank_names = array();
 		foreach ( $banks as $bank ) {
 			if ( isset( $bank['name'] ) ) {
-				$bank_names[] = rp_payparts_get_bank_name( $bank['name'] );
+				$bank_names[] = rozetkapay_payparts_get_bank_name( $bank['name'] );
 			}
 		}
 
@@ -1878,7 +1883,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 * Іконка платіжного методу
 	 */
 	public function get_icon() {
-		$icon_html = '<img src="' . RP_PAYPARTS_PLUGIN_URL . 'assets/images/rozetkapay-logo.png" alt="RozetkaPay" style="max-height: 24px;" />';
+		$icon_html = '<img src="' . ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/images/rozetkapay-logo.png" alt="RozetkaPay" style="max-height: 24px;" />';
 		return apply_filters( 'woocommerce_gateway_icon', $icon_html, $this->id );
 	}
 
@@ -1979,12 +1984,12 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 	 * Обробка опцій адмінки
 	 */
 	public function process_admin_options() {
-		rp_payparts_clear_cache();
+		rozetkapay_payparts_clear_cache();
 
 		$result = parent::process_admin_options();
 
 		if ( $this->debug_mode ) {
-			rp_payparts_log( 'Settings updated by user: ' . wp_get_current_user()->user_login );
+			rozetkapay_payparts_log( 'Settings updated by user: ' . wp_get_current_user()->user_login );
 		}
 
 		$raw                                = $this->get_option( 'order_ref_prefix', 'roz1' );
@@ -2033,7 +2038,7 @@ class RP_Payparts_Gateway extends WC_Payment_Gateway {
 		foreach ( $orders as $order ) {
 			$stats['total_amount'] += $order->get_total();
 
-			$option = get_post_meta( $order->get_id(), '_rp_payparts_option', true );
+			$option = rozetkapay_payparts_get_order_meta( $order->get_id(), '_rozetkapay_payparts_option' );
 			if ( ! empty( $option ) && strpos( $option, '|' ) !== false ) {
 				list( $bank, $term ) = explode( '|', $option );
 

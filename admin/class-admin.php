@@ -2,7 +2,7 @@
 /**
  * Admin Class - ВИПРАВЛЕНА ВЕРСІЯ
  *
- * @package RP_Payparts
+ * @package RozetkaPay_Payparts
  * @version 2.0.0
  */
 
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Адмін-функціонал
  */
-class RP_Payparts_Admin {
+class RozetkaPay_Payparts_Admin {
 
 	/**
 	 * Конструктор
@@ -21,12 +21,12 @@ class RP_Payparts_Admin {
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
-		add_filter( 'plugin_action_links_' . RP_PAYPARTS_PLUGIN_BASENAME, array( $this, 'plugin_action_links' ) );
+		add_filter( 'plugin_action_links_' . ROZETKAPAY_PAYPARTS_PLUGIN_BASENAME, array( $this, 'plugin_action_links' ) );
 		add_action( 'woocommerce_admin_order_data_after_payment_info', array( $this, 'display_order_payment_info' ) );
 
 		// ✅ ДОДАЄМО AJAX-ДІЇ
-		add_action( 'wp_ajax_rp_test_connection', array( $this, 'ajax_test_connection' ) );
-		add_action( 'wp_ajax_rp_clear_cache', array( $this, 'ajax_clear_cache' ) );
+		add_action( 'wp_ajax_rozetkapay_payparts_test_connection', array( $this, 'ajax_test_connection' ) );
+		add_action( 'wp_ajax_rozetkapay_payparts_clear_cache', array( $this, 'ajax_clear_cache' ) );
 	}
 
 	/**
@@ -38,7 +38,7 @@ class RP_Payparts_Admin {
 			__( 'RozetkaPay Оплата частинами', 'rozetkapay-payparts' ),
 			__( 'RozetkaPay Частинами', 'rozetkapay-payparts' ),
 			'manage_woocommerce',
-			'rp-payparts',
+			'rozetkapay-payparts',
 			array( $this, 'admin_page' )
 		);
 	}
@@ -52,16 +52,16 @@ class RP_Payparts_Admin {
 		}
 
 		$active_tab = 'overview';
-		if ( isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'rp_payparts_admin_tab' ) && isset( $_GET['tab'] ) ) {
+		if ( isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'rozetkapay_payparts_admin_tab' ) && isset( $_GET['tab'] ) ) {
 			$requested = sanitize_key( wp_unslash( $_GET['tab'] ) );
 			if ( in_array( $requested, array( 'overview', 'orders', 'settings' ), true ) ) {
 				$active_tab = $requested;
 			}
 		}
 
-		$overview_url = wp_nonce_url( admin_url( 'admin.php?page=rp-payparts&tab=overview' ), 'rp_payparts_admin_tab' );
-		$orders_url   = wp_nonce_url( admin_url( 'admin.php?page=rp-payparts&tab=orders' ), 'rp_payparts_admin_tab' );
-		$settings_url = wp_nonce_url( admin_url( 'admin.php?page=rp-payparts&tab=settings' ), 'rp_payparts_admin_tab' );
+		$overview_url = wp_nonce_url( admin_url( 'admin.php?page=rozetkapay-payparts&tab=overview' ), 'rozetkapay_payparts_admin_tab' );
+		$orders_url   = wp_nonce_url( admin_url( 'admin.php?page=rozetkapay-payparts&tab=orders' ), 'rozetkapay_payparts_admin_tab' );
+		$settings_url = wp_nonce_url( admin_url( 'admin.php?page=rozetkapay-payparts&tab=settings' ), 'rozetkapay_payparts_admin_tab' );
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'RozetkaPay Оплата частинами', 'rozetkapay-payparts' ); ?></h1>
@@ -103,7 +103,7 @@ class RP_Payparts_Admin {
 	 * Вивід вкладки «Огляд» – ОНОВЛЕНА ВЕРСІЯ для двох методів
 	 */
 	private function render_overview_tab() {
-		$payparts_gateway = rp_payparts_get_gateway();
+		$payparts_gateway = rozetkapay_payparts_get_gateway();
 		$standard_gateway = $this->get_standard_gateway();
 		$stats            = $this->get_payment_stats();
 		?>
@@ -203,11 +203,11 @@ class RP_Payparts_Admin {
 						<?php esc_html_e( 'Налаштування картками', 'rozetkapay-payparts' ); ?>
 					</a>
 
-					<button type="button" class="button" id="rp-test-connection" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rp_admin_nonce' ) ); ?>">
+					<button type="button" class="button" id="rp-test-connection" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rozetkapay_payparts_admin_nonce' ) ); ?>">
 						<?php esc_html_e( 'Тест підключення API', 'rozetkapay-payparts' ); ?>
 					</button>
 
-					<button type="button" class="button" id="rp-clear-cache" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rp_admin_nonce' ) ); ?>">
+					<button type="button" class="button" id="rp-clear-cache" data-nonce="<?php echo esc_attr( wp_create_nonce( 'rozetkapay_payparts_admin_nonce' ) ); ?>">
 						<?php esc_html_e( 'Очистити кеш', 'rozetkapay-payparts' ); ?>
 					</button>
 				</div>
@@ -245,7 +245,7 @@ class RP_Payparts_Admin {
 					</thead>
 					<tbody>
 						<?php foreach ( $orders as $order ) : ?>
-							<?php $option_data = rp_payparts_parse_option( get_post_meta( $order->get_id(), '_rp_payparts_option', true ) ); ?>
+							<?php $option_data = rozetkapay_payparts_parse_option( rozetkapay_payparts_get_order_meta( $order->get_id(), '_rozetkapay_payparts_option' ) ); ?>
 							<tr>
 								<td>
 									<a href="<?php echo esc_url( $order->get_edit_order_url() ); ?>">
@@ -381,7 +381,7 @@ class RP_Payparts_Admin {
 	 */
 	public function ajax_test_connection() {
 		// Перевірка nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'rp_admin_nonce' ) ) {
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'rozetkapay_payparts_admin_nonce' ) ) {
 			wp_send_json_error( __( 'Помилка безпеки', 'rozetkapay-payparts' ) );
 		}
 
@@ -389,13 +389,13 @@ class RP_Payparts_Admin {
 			wp_send_json_error( __( 'Недостатньо прав доступу', 'rozetkapay-payparts' ) );
 		}
 
-		$gateway = rp_payparts_get_gateway();
+		$gateway = rozetkapay_payparts_get_gateway();
 		if ( ! $gateway ) {
 			wp_send_json_error( __( 'Шлюз не знайдено', 'rozetkapay-payparts' ) );
 		}
 
 		// Створюємо API-клієнт
-		$api_client = new RP_Payparts_API( $gateway->api_user, $gateway->api_pass, false );
+		$api_client = new RozetkaPay_Payparts_API( $gateway->api_user, $gateway->api_pass, false );
 
 		// Отримуємо результат тесту
 		$result = $api_client->test_connection();
@@ -407,7 +407,7 @@ class RP_Payparts_Admin {
 				$result['banks_count'] = count( $banks );
 
 				// Оновлюємо кеш
-				set_transient( 'rp_payparts_banks', $banks, HOUR_IN_SECONDS );
+				set_transient( 'rozetkapay_payparts_banks', $banks, HOUR_IN_SECONDS );
 			}
 
 			wp_send_json_success( $result );
@@ -421,7 +421,7 @@ class RP_Payparts_Admin {
 	 */
 	public function ajax_clear_cache() {
 		// Перевірка nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'rp_admin_nonce' ) ) {
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'rozetkapay_payparts_admin_nonce' ) ) {
 			wp_send_json_error( __( 'Помилка безпеки', 'rozetkapay-payparts' ) );
 		}
 
@@ -430,10 +430,10 @@ class RP_Payparts_Admin {
 		}
 
 		// Очищаємо всі transients плагіна
-		rp_payparts_clear_cache();
+		rozetkapay_payparts_clear_cache();
 
 		// Додатково очищаємо специфічні кеші
-		delete_transient( 'rp_payparts_banks' );
+		delete_transient( 'rozetkapay_payparts_banks' );
 		delete_transient( 'rozetkapay_payparts_banks' );
 
 		// Очищаємо кеш об'єктів WordPress
@@ -459,8 +459,8 @@ class RP_Payparts_Admin {
 			return;
 		}
 
-		$payment_data     = rp_payparts_get_order_payment_data( $order->get_id() );
-		$installment_info = rp_payparts_get_order_installment_summary( $order->get_id() );
+		$payment_data     = rozetkapay_payparts_get_order_payment_data( $order->get_id() );
+		$installment_info = rozetkapay_payparts_get_order_installment_summary( $order->get_id() );
 
 		if ( ! $payment_data && ! $installment_info ) {
 			return;
@@ -519,7 +519,7 @@ class RP_Payparts_Admin {
 		}
 
 		// Перевіряємо, чи налаштований шлюз
-		$gateway = rp_payparts_get_gateway();
+		$gateway = rozetkapay_payparts_get_gateway();
 		if ( $gateway && 'yes' === $gateway->enabled && ( empty( $gateway->api_user ) || empty( $gateway->api_pass ) ) ) {
 			?>
 			<div class="notice notice-warning is-dismissible">
@@ -537,5 +537,5 @@ class RP_Payparts_Admin {
 
 // Ініціалізація адмін-класу в адмін-панелі
 if ( is_admin() ) {
-	new RP_Payparts_Admin();
+	new RozetkaPay_Payparts_Admin();
 }

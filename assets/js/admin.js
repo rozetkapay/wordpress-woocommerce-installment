@@ -276,7 +276,7 @@ jQuery(document).ready(function($) {
 
     // Швидкі дії на сторінці огляду
     if ($('#rp-test-connection').length) {
-        var strings = rpPaypartsAdmin.strings || {};
+        var strings = rozetkapayPaypartsAdmin.strings || {};
 
         $('#rp-test-connection').on('click', function() {
             var $button = $(this);
@@ -287,10 +287,10 @@ jQuery(document).ready(function($) {
             $messages.html('<div class="rp-admin-notice loading">🔄 ' + (strings.testingApi || '') + '</div>');
 
             $.ajax({
-                url: rpPaypartsAdmin.ajaxUrl,
+                url: rozetkapayPaypartsAdmin.ajaxUrl,
                 type: 'POST',
                 data: {
-                    action: 'rp_test_connection',
+                    action: 'rozetkapay_payparts_test_connection',
                     nonce: nonce
                 },
                 success: function(response) {
@@ -321,10 +321,10 @@ jQuery(document).ready(function($) {
             $messages.html('<div class="rp-admin-notice loading">🔄 ' + (strings.clearingCache || '') + '</div>');
 
             $.ajax({
-                url: rpPaypartsAdmin.ajaxUrl,
+                url: rozetkapayPaypartsAdmin.ajaxUrl,
                 type: 'POST',
                 data: {
-                    action: 'rp_clear_cache',
+                    action: 'rozetkapay_payparts_clear_cache',
                     nonce: nonce
                 },
                 success: function(response) {

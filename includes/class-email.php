@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class RP_Payparts_Email {
+class RozetkaPay_Payparts_Email {
 
 	private $gateway;
 

@@ -7,7 +7,7 @@
     'use strict';
 
     // Головний об’єкт плагіна
-    const RPPayparts = {
+    const RozetkaPayPayparts = {
         
         /**
          * Ініціалізація
@@ -25,7 +25,7 @@
             $(document.body).on('updated_cart_totals updated_checkout', this.updateCalculations.bind(this));
             
             // Обробка вибору опції оплати
-            $(document).on('change', 'input[name="rp_payparts_option"]', this.handleOptionChange.bind(this));
+            $(document).on('change', 'input[name="rozetkapay_payparts_option"]', this.handleOptionChange.bind(this));
             
             // Обробка вибору методу оплати
             $(document).on('change', 'input[name="payment_method"]', this.handlePaymentMethodChange.bind(this));
@@ -61,7 +61,7 @@
                 const monthlyPayment = Math.round(cartTotal / term);
                 
                 const $details = $option.find('.rp-option-details');
-                $details.html('<strong>' + RPPayparts.formatPrice(monthlyPayment) + ' грн/міс</strong>');
+                $details.html('<strong>' + RozetkaPayPayparts.formatPrice(monthlyPayment) + ' грн/міс</strong>');
             });
 
             // Оновлення повідомлення в кошику
@@ -138,7 +138,7 @@
             $option.addClass('rp-selected');
             
             // Тригер події
-            $(document.body).trigger('rp_payparts_option_changed', [$(e.target).val()]);
+            $(document.body).trigger('rozetkapay_payparts_option_changed', [$(e.target).val()]);
         },
 
         /**
@@ -209,7 +209,7 @@
         showLoading: function() {
             $('.rp-payparts-container').addClass('rp-loading');
             $('.rp-option-details').html('<span class="rp-calc-note">' + 
-                (rpPayparts.strings?.calculating || 'Розраховуємо...') + '</span>');
+                (rozetkapayPayparts.strings?.calculating || 'Розраховуємо...') + '</span>');
         },
 
         /**
@@ -226,7 +226,7 @@
             console.error('RozetkaPay Payparts Помилка:', message);
             
             $('.rp-option-details').html('<span class="rp-calc-note rp-error">' + 
-                (rpPayparts.strings?.error || 'Помилка розрахунку') + '</span>');
+                (rozetkapayPayparts.strings?.error || 'Помилка розрахунку') + '</span>');
         }
     };
 
@@ -262,7 +262,7 @@
                 const $bankName = $(this);
                 const bankSlug = $bankName.text().toLowerCase().replace(/\s+/g, '');
                 
-                const logoUrl = rpPayparts.assetsUrl + 'images/banks/' + bankSlug + '.png';
+                const logoUrl = rozetkapayPayparts.assetsUrl + 'images/banks/' + bankSlug + '.png';
                 const $logo = $('<img class="rp-bank-logo" src="' + logoUrl + '" alt="' + $bankName.text() + '">');
                 
                 $logo.on('error', function() {
@@ -296,9 +296,9 @@
 
     // Ініціалізація при готовності документа
     $(document).ready(function() {
-        RPPayparts.init();
+        RozetkaPayPayparts.init();
         
-        if (typeof rpPayparts !== 'undefined' && rpPayparts.enableAdvanced) {
+        if (typeof rozetkapayPayparts !== 'undefined' && rozetkapayPayparts.enableAdvanced) {
             AdvancedFeatures.addTooltips();
             AdvancedFeatures.addBankLogos();
             AdvancedFeatures.addProgressIndicators();
@@ -306,8 +306,8 @@
     });
 
     // Експортуємо у глобальну область
-    window.RPPayparts = RPPayparts;
-    window.RPPaypartsAdvanced = AdvancedFeatures;
+    window.RozetkaPayPayparts = RozetkaPayPayparts;
+    window.RozetkaPayPaypartsAdvanced = AdvancedFeatures;
 
 })(jQuery);
 

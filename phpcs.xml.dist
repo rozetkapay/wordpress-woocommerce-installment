@@ -32,11 +32,7 @@
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
         <properties>
             <property name="prefixes" type="array">
-                <element value="rp_payparts"/>
-                <element value="rp_standard"/>
-                <element value="RP_Payparts"/>
-                <element value="RP_Standard"/>
-                <element value="rozetkapay"/>
+                <element value="rozetkapay_payparts"/>
             </property>
         </properties>
     </rule>
