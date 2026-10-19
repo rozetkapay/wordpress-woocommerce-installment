@@ -8,7 +8,6 @@
  * Text Domain: rozetkapay-payparts
  * Domain Path: /languages
  * Requires at least: 5.0
- * Tested up to: 7.1
  * WC requires at least: 5.0
  * WC tested up to: 11.0
  * License: GPL v2 or later
