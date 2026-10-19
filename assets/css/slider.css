@@ -452,3 +452,17 @@
     0% { transform: translate(-50%, -50%) rotate(0deg); }
     100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
+
+/* Bank logo fallback: shown only when the logo image fails to load */
+.rp-bank-logo:not(.rp-logo-failed) .rp-bank-fallback,
+.rp-bank-logo.rp-logo-failed img {
+    display: none;
+}
+
+.rp-bank-logo.rp-logo-failed .rp-bank-fallback {
+    display: flex;
+}
+
+.rp-current-bank-info .rp-bank-logo.rp-logo-failed .rp-bank-fallback {
+    display: inline-block;
+}

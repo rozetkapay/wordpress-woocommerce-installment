@@ -874,7 +874,7 @@ class RozetkaPay_Payparts_Standard_Gateway extends WC_Payment_Gateway {
 	}
 
 	private function display_diagnostic_panel() {
-		echo '<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">';
+		echo '<div class="rp-admin-panel">';
 		echo '<h3>Діагностика системи</h3>';
 
 		// Перевіряємо AJAX-обробники
@@ -882,16 +882,16 @@ class RozetkaPay_Payparts_Standard_Gateway extends WC_Payment_Gateway {
 		$ajax_registered = isset( $wp_filter['wp_ajax_rozetkapay_payparts_test_api_connection'] ) &&
 							! empty( $wp_filter['wp_ajax_rozetkapay_payparts_test_api_connection']->callbacks );
 
-		echo '<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px; border-left: 4px solid ' . ( $ajax_registered ? '#28a745' : '#dc3545' ) . ';">';
+		echo '<div class="rp-admin-check' . ( $ajax_registered ? ' rp-admin-check--ok' : '' ) . '">';
 		echo '<strong>' . ( $ajax_registered ? '✅' : '❌' ) . ' AJAX-обробники:</strong> ' . ( $ajax_registered ? 'Зареєстровані' : 'НЕ зареєстровані' );
 		echo '</div>';
 
 		if ( empty( $this->api_user ) || empty( $this->api_pass ) ) {
-			echo '<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px; border-left: 4px solid #dc3545;">';
+			echo '<div class="rp-admin-check">';
 			echo '<strong>❌ API ключі не налаштовані</strong>';
 			echo '</div>';
 		} else {
-			echo '<div style="margin: 10px 0; padding: 10px; background: white; border-radius: 4px; border-left: 4px solid #28a745;">';
+			echo '<div class="rp-admin-check rp-admin-check--ok">';
 			echo '<strong>✅ API ключі налаштовані</strong> (User: ' . esc_html( $this->api_user ) . ')';
 			echo '</div>';
 		}
@@ -907,9 +907,9 @@ class RozetkaPay_Payparts_Standard_Gateway extends WC_Payment_Gateway {
 			return;
 		}
 
-		echo '<div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0;">';
+		echo '<div class="rp-admin-panel rp-admin-panel--warning">';
 		echo '<h3>Технічна інформація</h3>';
-		echo '<div style="font-family: monospace; font-size: 12px;">';
+		echo '<div class="rp-admin-monospace">';
 		echo '<p><strong>Gateway ID:</strong> ' . esc_html( $this->id ) . '</p>';
 		echo '<p><strong>API User:</strong> ' . esc_html( $this->api_user ) . '</p>';
 		echo '<p><strong>Gateway Enabled:</strong> ' . ( $this->enabled === 'yes' ? 'ТАК' : 'НІ' ) . '</p>';
@@ -942,7 +942,7 @@ class RozetkaPay_Payparts_Standard_Gateway extends WC_Payment_Gateway {
 				console.log('RozetkaPay: API test button clicked');
 				
 				$button.prop('disabled', true).text('Перевіряєм...');
-				$result.html('<div style="color: #666; padding: 10px; background: #f0f0f0; border-radius: 4px;">⏳ Виконується тест з\'єднання...</div>');
+				$result.html('<div class="rp-test-message">⏳ Виконується тест з\'єднання...</div>');
 				
 				var requestData = {
 					action: 'rozetkapay_payparts_test_api_connection',
@@ -963,7 +963,7 @@ class RozetkaPay_Payparts_Standard_Gateway extends WC_Payment_Gateway {
 						if (response && response.success) {
 							var message = response.data && response.data.message ? response.data.message : 'Успіх';
 							var details = response.data && response.data.details ? '<br/><small>' + response.data.details + '</small>' : '';
-							$result.html('<div style="color: #28a745; background: #d4edda; padding: 15px; border-radius: 4px;"><strong>✅ ' + message + '</strong>' + details + '</div>');
+							$result.html('<div class="rp-test-message rp-test-message--success"><strong>✅ ' + message + '</strong>' + details + '</div>');
 						} else {
 							var errorMsg = 'Невідома помилка';
 							if (response && response.data) {
@@ -974,7 +974,7 @@ class RozetkaPay_Payparts_Standard_Gateway extends WC_Payment_Gateway {
 									}
 								}
 							}
-							$result.html('<div style="color: #dc3545; background: #f8d7da; padding: 15px; border-radius: 4px;"><strong>❌ ' + errorMsg + '</strong></div>');
+							$result.html('<div class="rp-test-message rp-test-message--error"><strong>❌ ' + errorMsg + '</strong></div>');
 						}
 					},
 					error: function(xhr, status, error) {
@@ -992,7 +992,7 @@ class RozetkaPay_Payparts_Standard_Gateway extends WC_Payment_Gateway {
 							}
 						}
 						
-						$result.html('<div style="color: #dc3545; background: #f8d7da; padding: 15px; border-radius: 4px;"><strong>❌ ' + errorMsg + '</strong></div>');
+						$result.html('<div class="rp-test-message rp-test-message--error"><strong>❌ ' + errorMsg + '</strong></div>');
 					},
 					complete: function() {
 						console.log('RozetkaPay: AJAX request completed');
@@ -1006,7 +1006,7 @@ class RozetkaPay_Payparts_Standard_Gateway extends WC_Payment_Gateway {
 				var $result = $('#rp-test-result');
 				
 				$button.prop('disabled', true).text('Тестуємо...');
-				$result.html('<div style="color: #666; padding: 10px; background: #f0f0f0; border-radius: 4px;">⏳ Тестуємо обробку callback...</div>');
+				$result.html('<div class="rp-test-message">⏳ Тестуємо обробку callback...</div>');
 				
 				var requestData = {
 					action: 'rozetkapay_payparts_test_callback_processing',
@@ -1023,14 +1023,14 @@ class RozetkaPay_Payparts_Standard_Gateway extends WC_Payment_Gateway {
 						if (response && response.success) {
 							var message = response.data && response.data.message ? response.data.message : 'Успіх';
 							var details = response.data && response.data.details ? '<br/><small>' + response.data.details + '</small>' : '';
-							$result.html('<div style="color: #28a745; background: #d4edda; padding: 15px; border-radius: 4px;"><strong>✅ ' + message + '</strong>' + details + '</div>');
+							$result.html('<div class="rp-test-message rp-test-message--success"><strong>✅ ' + message + '</strong>' + details + '</div>');
 						} else {
 							var errorMsg = response && response.data && response.data.message ? response.data.message : 'Невідома помилка';
-							$result.html('<div style="color: #dc3545; background: #f8d7da; padding: 15px; border-radius: 4px;"><strong>❌ ' + errorMsg + '</strong></div>');
+							$result.html('<div class="rp-test-message rp-test-message--error"><strong>❌ ' + errorMsg + '</strong></div>');
 						}
 					},
 					error: function(xhr, status, error) {
-						$result.html('<div style="color: #dc3545; background: #f8d7da; padding: 15px; border-radius: 4px;"><strong>❌ AJAX-помилка під час тесту callback</strong></div>');
+						$result.html('<div class="rp-test-message rp-test-message--error"><strong>❌ AJAX-помилка під час тесту callback</strong></div>');
 					},
 					complete: function() {
 						$button.prop('disabled', false).text('Тест обробки callback');

@@ -459,3 +459,8 @@
 .rp-loading .rp-option-details {
     opacity: 0.6;
 }
+
+#payment .payment_methods li img.rp-payparts-gateway-icon,
+img.rp-payparts-gateway-icon {
+    max-height: 24px;
+}

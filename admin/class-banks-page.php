@@ -137,22 +137,22 @@ class RozetkaPay_Payparts_Banks_Page {
 			<h1>RozetkaPay — Доступні банки (PayParts)</h1>
 			<p class="description">Ендпоінт: <code>/api/payparts/v1/banks/info</code> • Авторизація: <strong>BasicAuth</strong> (login:password)</p>
 
-			<form method="get" style="margin:16px 0;">
+			<form method="get" class="rp-banks-filter">
 				<input type="hidden" name="page" value="rozetkapay-payparts-banks"/>
 				<?php wp_nonce_field( 'rozetkapay_payparts_banks_filter' ); ?>
 				<label>
 					Сума (UAH):
-					<input type="number" step="0.01" name="amount" value="<?php echo esc_attr( $amount ); ?>" style="width:140px;">
+					<input type="number" step="0.01" name="amount" value="<?php echo esc_attr( $amount ); ?>" class="rp-input-wide">
 				</label>
 				&nbsp;&nbsp;
 				<label>
 					Термін (місяців):
-					<input type="number" name="term" value="<?php echo esc_attr( $term ); ?>" style="width:100px;">
+					<input type="number" name="term" value="<?php echo esc_attr( $term ); ?>" class="rp-input-narrow">
 				</label>
 				&nbsp;&nbsp;
 				<label>
 					include_fees:
-					<input type="text" name="include_fees" value="<?php echo esc_attr( $include_fees ); ?>" style="width:140px;">
+					<input type="text" name="include_fees" value="<?php echo esc_attr( $include_fees ); ?>" class="rp-input-wide">
 				</label>
 				&nbsp;&nbsp;
 				<button class="button button-primary">Оновити</button>
@@ -168,10 +168,10 @@ class RozetkaPay_Payparts_Banks_Page {
 				</div>
 			<?php endif; ?>
 
-			<table class="widefat striped" style="margin-top:12px;">
+			<table class="widefat striped rp-banks-table">
 				<thead>
 					<tr>
-						<th style="width:40px;">#</th>
+						<th class="rp-col-index">#</th>
 						<th>Банк</th>
 						<th>Продукт</th>
 						<th>Ліміти (грн)</th>
@@ -200,7 +200,7 @@ class RozetkaPay_Payparts_Banks_Page {
 						</td>
 						<td>
 												<?php foreach ( (array) ( $b['available_periods'] ?? array() ) as $p ) : ?>
-								<span style="display:inline-block;padding:2px 6px;border:1px solid #ddd;border-radius:10px;margin:2px;"><?php echo (int) $p; ?> міс.</span>
+								<span class="rp-period-badge"><?php echo (int) $p; ?> міс.</span>
 							<?php endforeach; ?>
 						</td>
 					</tr>

@@ -1,5 +1,28 @@
 jQuery(document).ready(function($) {
     console.log('SLIDER: Скрипт завантажено');
+
+    // Якщо логотип банку не завантажився, показуємо скорочену назву банку
+    function showLogoFallback(img) {
+        $(img).closest('.rp-bank-logo').addClass('rp-logo-failed');
+    }
+
+    function checkBankLogos() {
+        $('.rp-bank-logo img').each(function() {
+            if (this.complete && this.naturalWidth === 0) {
+                showLogoFallback(this);
+            }
+        });
+    }
+
+    // Подія error не спливає, тому слухаємо її у фазі перехоплення
+    document.addEventListener('error', function(e) {
+        if (e.target && e.target.tagName === 'IMG' && $(e.target).closest('.rp-bank-logo').length) {
+            showLogoFallback(e.target);
+        }
+    }, true);
+
+    checkBankLogos();
+    $(document.body).on('updated_checkout', checkBankLogos);
     
     setTimeout(function() {
         if (typeof rozetkapay_payparts_slider_data === 'undefined') {
@@ -130,14 +153,12 @@ var bankMinPeriods = {
                 $bankLogo.attr('alt', bankData.name + ' Logo');
                 
                 // Показуємо зображення та ховаємо fallback
-                $bankLogo.show();
-                $bankFallback.hide();
+                $bankLogo.closest('.rp-bank-logo').removeClass('rp-logo-failed');
                 
                 // Обробник помилки завантаження логотипа
                 $bankLogo.off('error').on('error', function() {
                     console.log('SLIDER: Не вдалося завантажити логотип для', bankSlug);
-                    $(this).hide();
-                    $bankFallback.show();
+                    showLogoFallback(this);
                     
                     // Оновлюємо текст fallback
                     var fallbackText = bankData.name.substring(0, 2).toUpperCase();

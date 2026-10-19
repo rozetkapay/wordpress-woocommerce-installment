@@ -172,8 +172,8 @@ class RozetkaPay_Payparts_Assets_Manager {
 	 * Перевірка чи потрібно завантажувати адмін ресурси
 	 */
 	private function should_load_admin_assets( $hook ) {
-		// Сторінка RozetkaPay в меню WooCommerce
-		if ( 'woocommerce_page_rozetkapay-payparts' === $hook ) {
+		// Сторінки RozetkaPay в меню WooCommerce
+		if ( in_array( $hook, array( 'woocommerce_page_rozetkapay-payparts', 'woocommerce_page_rozetkapay-payparts-banks' ), true ) ) {
 			return true;
 		}
 

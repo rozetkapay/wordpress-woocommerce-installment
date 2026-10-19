@@ -1244,9 +1244,8 @@ class RozetkaPay_Payparts_Gateway extends WC_Payment_Gateway {
 								<div class="rp-bank-card">
 									<div class="rp-bank-logo">
 										<img src="<?php echo esc_url( ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/images/' . $bank_slug . '-logo.png' ); ?>" 
-											alt="<?php echo esc_attr( $bank_info['name'] ); ?>"
-											onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-										<div class="rp-bank-fallback" style="display:none;">
+											alt="<?php echo esc_attr( $bank_info['name'] ); ?>">
+										<div class="rp-bank-fallback">
 											<?php echo esc_html( mb_substr( $bank_info['name'], 0, 2 ) ); ?>
 										</div>
 									</div>
@@ -1312,9 +1311,8 @@ class RozetkaPay_Payparts_Gateway extends WC_Payment_Gateway {
 				<div class="rp-current-bank-info">
 					<div class="rp-bank-logo">
 						<img src="<?php echo esc_url( ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/images/' . $default_bank . '-logo.png' ); ?>" 
-							alt="Bank Logo"
-							onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
-						<span class="rp-bank-fallback" style="display: none;">
+							alt="Bank Logo">
+						<span class="rp-bank-fallback">
 							<?php echo esc_html( mb_substr( $banks_data[ $default_bank ]['name'], 0, 2 ) ); ?>
 						</span>
 					</div>
@@ -1835,7 +1833,7 @@ class RozetkaPay_Payparts_Gateway extends WC_Payment_Gateway {
 	public function admin_options() {
 		echo '<h2>' . esc_html( $this->get_method_title() ) . '</h2>';
 
-		echo '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">';
+		echo '<div class="rp-admin-panel">';
 		echo '<h3>ℹ️ Інформація про плагін</h3>';
 		echo '<p><strong>Версія:</strong> ' . esc_html( ROZETKAPAY_PAYPARTS_VERSION ) . '</p>';
 		echo '<p><strong>Статус:</strong> ' . ( $this->enabled === 'yes' ? '✅ Активний' : '❌ Неактивний' ) . '</p>';
@@ -1883,7 +1881,7 @@ class RozetkaPay_Payparts_Gateway extends WC_Payment_Gateway {
 	 * Іконка платіжного методу
 	 */
 	public function get_icon() {
-		$icon_html = '<img src="' . ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/images/rozetkapay-logo.png" alt="RozetkaPay" style="max-height: 24px;" />';
+		$icon_html = '<img src="' . ROZETKAPAY_PAYPARTS_PLUGIN_URL . 'assets/images/rozetkapay-logo.png" alt="RozetkaPay" class="rp-payparts-gateway-icon" />';
 		return apply_filters( 'woocommerce_gateway_icon', $icon_html, $this->id );
 	}
 
