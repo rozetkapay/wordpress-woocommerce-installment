@@ -1,8 +1,10 @@
 === RozetkaPay Payparts for WooCommerce ===
+Contributors: rozetkapay
+Tags: woocommerce, payment gateway, installments, rozetkapay, payparts
 Requires at least: 5.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.9
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,7 +20,7 @@ This plugin connects a WooCommerce store to the RozetkaPay payment service and a
 Additional functionality:
 
 * An instalment widget for product and cart pages that shows the estimated monthly payment.
-* A shortcode `[rp_payparts_widget]` for placing the widget in page content.
+* A shortcode `[rozetkapay_payparts_widget]` for placing the widget in page content. The previous name `[rp_payparts_widget]` keeps working for existing pages.
 * Callback handling that updates order status when a payment is confirmed, declined or cancelled.
 * Optional scheduled status polling for orders that are still awaiting payment.
 * Refunds initiated from the WooCommerce order screen.
@@ -55,10 +57,21 @@ Legal information about the service provider and its licences: https://rozetkapa
 
 == Changelog ==
 
+= 2.1.0 =
+* Renamed the plugin to "RozetkaPay Payparts for WooCommerce".
+* Changed the text domain from `rp-payparts` to `rozetkapay-payparts` and renamed the translation files accordingly.
+* Removed the automatic payment confirmation setting. Instalment payments are now confirmed manually in the RozetkaPay merchant account after the customer signs the agreement.
+* Declared the incompatibility with the Cart and Checkout blocks.
+* Moved diagnostic logging to the WooCommerce logger, behind the gateway debug setting.
+* Moved inline scripts and styles to separate asset files.
+* Callbacks for card payments (RozetkaPay Enhanced) are now accepted only with a valid `X-ROZETKAPAY-SIGNATURE` signature.
+* Callback signature check for instalments now also accepts bodies encoded with base64 padding.
+* Renamed functions, classes, hooks, AJAX actions and order meta keys to the `rozetkapay_payparts_` prefix. Orders created by earlier versions are still found by their previous meta keys, and the scheduled status checks are moved to the new hook names on update.
+* Renamed the widget shortcode to `[rozetkapay_payparts_widget]`. The previous `[rp_payparts_widget]` shortcode keeps working.
+* Order meta is now stored through the WooCommerce order API, which keeps it consistent with High-Performance Order Storage.
+
 = 2.0.9 =
 * Fixed loading of the slider and bank card styles on the cart and checkout pages.
 * Improved the bank selection interface and logo fallbacks.
 * Extended the product data sent to RozetkaPay with category, unit price, tax, shipping and fee lines.
 * Improved payment status handling for scheduled status checks and callbacks.
-* Declared the incompatibility with the Cart and Checkout blocks.
-* Moved diagnostic logging to the WooCommerce logger, behind the gateway debug setting.

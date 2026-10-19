@@ -3,7 +3,7 @@
  * Plugin Name: RozetkaPay Payparts for WooCommerce
  * Plugin URI: https://rozetkapay.com/
  * Description: Інтеграція оплати частинами RozetkaPay для WooCommerce
- * Version: 2.0.9
+ * Version: 2.1.0
  * Author: RozetkaPay
  * Author URI: https://rozetkapay.com/
  * Text Domain: rozetkapay-payparts
@@ -49,7 +49,7 @@ if ( defined( 'ROZETKAPAY_PAYPARTS_BOOTSTRAPPED' ) ) {
 define( 'ROZETKAPAY_PAYPARTS_BOOTSTRAPPED', true );
 
 // Define plugin constants
-define( 'ROZETKAPAY_PAYPARTS_VERSION', '2.0.9' );
+define( 'ROZETKAPAY_PAYPARTS_VERSION', '2.1.0' );
 define( 'ROZETKAPAY_PAYPARTS_PLUGIN_FILE', __FILE__ );
 define( 'ROZETKAPAY_PAYPARTS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'ROZETKAPAY_PAYPARTS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
